@@ -151,10 +151,18 @@
   .tab-content.active { display: block; }
 
   /* ── Dashboard ── */
-  .balance-card { background: linear-gradient(135deg, var(--primary) 0%, #2E7D32 100%); color: white; border-radius: var(--radius); padding: 18px 16px; margin-bottom: 10px; }
+  .balance-card { background: linear-gradient(135deg, var(--primary) 0%, #2E7D32 100%); color: white; border-radius: var(--radius); padding: 18px 16px; margin-bottom: 10px; position: relative; display: flex; align-items: stretch; gap: 12px; }
+  .balance-left { flex: 1; min-width: 0; }
+  .balance-right { text-align: right; font-size: 11px; opacity: 0.7; display: flex; flex-direction: column; justify-content: center; max-width: 45%; }
+  .balance-right .member-count { font-size: 13px; font-weight: 700; opacity: 0.9; }
+  .balance-right .manager-names { font-size: 10px; font-weight: 700; margin-top: 2px; line-height: 1.3; color: #fff; opacity: 1; }
   .balance-card .label { font-size: 11px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
   .balance-card .amount { font-size: 28px; font-weight: 800; margin: 4px 0; letter-spacing: -0.5px; }
   .balance-card .sub { font-size: 11px; opacity: 0.65; }
+  .balance-share-btn { position: absolute; top: 6px; right: 6px; background: none; border: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; z-index: 2; }
+  .balance-share-btn .share-circle { background: rgba(255,255,255,0.2); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: background 0.15s; pointer-events: none; }
+  .balance-share-btn:active .share-circle { background: rgba(255,255,255,0.4); }
+  .balance-share-btn svg { pointer-events: none; }
   .pending-card { background: var(--pending-light); border: 1.5px solid var(--pending); border-radius: 12px; padding: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
   .pending-card .icon { font-size: 22px; }
   .pending-card .info { flex: 1; }
@@ -304,9 +312,7 @@
   .tx-item:hover .tx-share { display: block; }
   .tx-delete + .tx-share { right: 28px; }
   @media (pointer: coarse) { .tx-share { display: block; } }
-  .share-summary-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background: #E8F5E9; color: #25D366; border: 1.5px solid #25D366; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 14px; transition: all 0.15s; }
-  .share-summary-btn:active { background: #25D366; color: white; }
-  .share-summary-btn:active svg { fill: white; }
+
   .wa-icon { display: inline-block; vertical-align: middle; line-height: 0; }
   .history-back { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--primary); cursor: pointer; margin-bottom: 10px; background: none; border: none; padding: 4px 0; }
 
@@ -347,6 +353,7 @@
   /* Umpiring Roster */
   .umpire-card { display: flex; align-items: flex-start; gap: 10px; background: var(--card); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
   .umpire-card.my-duty { border-left: 3px solid var(--primary); }
+  .umpire-card.open-slot { border-left: 3px solid var(--warning); background: #FFFDE7; }
   .umpire-card.past { opacity: 0.6; }
   .umpire-date { font-size: 11px; font-weight: 700; color: var(--primary); white-space: nowrap; min-width: 72px; padding-top: 2px; }
   .umpire-details { flex: 1; min-width: 0; }
@@ -477,12 +484,21 @@
     <button onclick="upgradeFromGuest()" style="background:#1565C0;">Sign In</button>
   </div>
 
+  <div id="pollReminderBanner" style="padding: 0 14px;"></div>
+
   <!-- Tab: Dashboard -->
   <div id="tab-dashboard" class="tab-content active">
     <div id="balanceCard" class="balance-card">
-      <div class="label">Approved Balance</div>
-      <div class="amount" id="dashBalance">₹0</div>
-      <div class="sub" id="dashBalanceSub"></div>
+      <button class="balance-share-btn" onclick="shareSummaryToWhatsApp()" title="Share summary on WhatsApp"><div class="share-circle"><svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div></button>
+      <div class="balance-left">
+        <div class="label">Approved Balance</div>
+        <div class="amount" id="dashBalance">₹0</div>
+        <div class="sub" id="dashBalanceSub"></div>
+      </div>
+      <div class="balance-right">
+        <div class="member-count" id="dashMemberCount"></div>
+        <div class="manager-names" id="dashManagerNames"></div>
+      </div>
     </div>
     <div id="pendingCard" class="pending-card hidden">
       <div class="icon">⏳</div>
@@ -496,7 +512,6 @@
       <div class="summary-item sponsorship"><div class="val" id="dashSponsorships">₹0</div><div class="lbl">Sponsorships</div></div>
       <div class="summary-item expense"><div class="val" id="dashExpense">₹0</div><div class="lbl">Expenses</div></div>
     </div>
-    <button class="share-summary-btn" onclick="shareSummaryToWhatsApp()"><span class="wa-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span> Share Summary on WhatsApp</button>
     <div class="section-row">
       <div class="section-title">Recent Transactions</div>
       <a href="#" class="export-link" onclick="showTab('history');return false;">See All ›</a>
@@ -583,18 +598,18 @@
       <button onclick="copyInviteLink()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:var(--primary);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">🔗 Copy Invite Link</button>
       <button onclick="copyClubId()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:#F5F5F5;color:var(--text);border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">🆔 Copy Club ID</button>
     </div>
-    <div class="section-title" style="margin-bottom:12px;">Members</div>
-    <div id="membersList" style="padding:0 0 12px;"></div>
-    <div id="addMemberSection" style="display:none;">
+    <div id="addMemberSection" style="display:none;margin-bottom:14px;">
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <button onclick="openAddPlaceholderModal()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:#E8F5E9;color:var(--primary);border:1.5px solid var(--primary);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">👤+ Add Member</button>
+      </div>
       <div class="add-member-form">
         <input type="email" id="addMemberEmail" placeholder="member@gmail.com" />
         <button onclick="addMemberByEmail()">✉️ Invite</button>
       </div>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <button onclick="openAddPlaceholderModal()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:#E8F5E9;color:var(--primary);border:1.5px solid var(--primary);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">👤+ Add Member Manually</button>
-      </div>
       <div id="pendingInvitesList"></div>
     </div>
+    <div class="section-title" style="margin-bottom:12px;">Members</div>
+    <div id="membersList" style="padding:0 0 12px;"></div>
   </div>
 
   <!-- Tab: Polls -->
@@ -663,9 +678,7 @@
     <div class="menu-item" onclick="openSettingsModal();closeMenu();">
       <span class="menu-icon">⚙️</span> Club Settings
     </div>
-    <div class="menu-item" id="menuImportItem" onclick="openImportModal();closeMenu();" style="display:none;">
-      <span class="menu-icon">📥</span> Import from V1
-    </div>
+
   </div>
 
   <div class="menu-group">
@@ -694,34 +707,7 @@
   </div>
 </div>
 
-<!-- ── Import V1 Modal ── -->
-<div id="importModal" class="modal-overlay" onclick="if(event.target===this)closeImportModal()">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <h2>📥 Import from V1</h2>
-    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;">Import transactions from your V1 Google Sheets app into this club.</p>
-    <div class="form-group">
-      <label>V1 Apps Script URL</label>
-      <input type="url" id="importV1Url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:11px;" />
-      <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">Paste the same URL used in your V1 app settings</div>
-    </div>
-    <div id="importPreview" style="display:none;">
-      <div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:16px;">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Preview</div>
-        <div id="importPreviewStats" style="font-size:12px;color:var(--text-secondary);"></div>
-      </div>
-    </div>
-    <div id="importProgress" style="display:none;margin-bottom:16px;">
-      <div style="background:var(--border);border-radius:6px;height:8px;overflow:hidden;">
-        <div id="importProgressBar" style="background:var(--primary);height:100%;width:0%;transition:width 0.3s;"></div>
-      </div>
-      <div id="importProgressText" style="font-size:11px;color:var(--text-secondary);margin-top:4px;text-align:center;"></div>
-    </div>
-    <button class="submit-btn" id="importFetchBtn" onclick="fetchV1Data()" style="margin-bottom:8px;">Fetch V1 Data</button>
-    <button class="submit-btn" id="importRunBtn" onclick="runV1Import()" style="margin-bottom:8px;display:none;">Import All Transactions</button>
-    <button class="submit-btn" onclick="closeImportModal()" style="background:#F5F5F5;color:var(--text);">Cancel</button>
-  </div>
-</div>
+
 
 <!-- ── Settings Modal ── -->
 <div id="settingsModal" class="modal-overlay" onclick="if(event.target===this)closeSettingsModal()">
@@ -822,7 +808,7 @@
 <div id="createUmpireModal" class="modal-overlay" onclick="if(event.target===this)closeCreateUmpireModal()">
   <div class="modal">
     <div class="modal-handle"></div>
-    <h2>🏏 Assign Umpire</h2>
+    <h2>🏏 Umpire Duty</h2>
     <div class="form-group">
       <label>Match Title *</label>
       <input type="text" id="umpireMatchTitle" placeholder="e.g. vs Chennai Tigers" maxlength="80" />
@@ -836,21 +822,23 @@
       <input type="text" id="umpireVenue" placeholder="e.g. YMCA Ground" maxlength="100" />
     </div>
     <div class="form-group">
+      <label>Assignment Method</label>
+      <select id="umpireMethod" onchange="onUmpireMethodChange()">
+        <option value="volunteer">🙋 Open for Volunteers</option>
+        <option value="manual">👤 Manual Pick</option>
+        <option value="dice">🎲 Dice Roll (random from lowest-count)</option>
+      </select>
+    </div>
+    <div id="umpireVolunteerNote" style="text-align:center;padding:12px;background:#E8F5E9;border-radius:8px;font-size:12px;color:var(--primary);">🙋 Will be shared on WhatsApp for volunteers to claim</div>
+    <div id="umpireAssignToGroup" class="form-group" style="display:none;">
       <label>Assign To</label>
       <select id="umpireAssignTo"></select>
-    </div>
-    <div class="form-group">
-      <label>Assignment Method</label>
-      <select id="umpireMethod">
-        <option value="manual">Manual pick</option>
-        <option value="dice">🎲 Dice roll (random from lowest-count)</option>
-      </select>
     </div>
     <div id="diceResult" style="display:none;text-align:center;padding:16px;">
       <div style="font-size:40px;" id="diceEmoji">🎲</div>
       <div style="font-size:14px;font-weight:600;margin-top:8px;" id="diceResultName"></div>
     </div>
-    <button class="submit-btn" id="createUmpireBtn" onclick="createUmpireAssignment()" style="margin-bottom:8px;">Assign</button>
+    <button class="submit-btn" id="createUmpireBtn" onclick="createUmpireAssignment()" style="margin-bottom:8px;">Create & Share</button>
     <button class="submit-btn" onclick="closeCreateUmpireModal()" style="background:#F5F5F5;color:var(--text);">Cancel</button>
   </div>
 </div>
@@ -905,6 +893,7 @@
   var currentUmpireFilter = 'upcoming'; // upcoming, my, past, stats
   var pendingPollNav = false; // true when navigating from a poll link
   var pendingVote = null; // { pollId, vote } for deep-link voting
+  var pendingUmpireVolunteer = null; // { assignmentId } for deep-link umpire volunteer
 
   var DEFAULT_CATEGORIES = [
     'Ground Fees', 'Equipment', 'Jerseys', 'Travel', 'Food & Drinks',
@@ -939,11 +928,29 @@
         sessionStorage.removeItem('pendingVote');
 
         // Clean URL
-        if (params.has('join') || params.has('poll')) {
+        if (params.has('join') || params.has('poll') || params.has('umpire')) {
           history.replaceState(null, '', window.location.pathname);
         }
 
-        if (pollId && pollClubId) {
+        // Check for umpire volunteer link
+        var umpireId = params.get('umpire');
+        var umpireClubId = params.get('club') || pollClubId;
+        var umpireAction = params.get('action');
+        if (!umpireId) umpireId = sessionStorage.getItem('pendingUmpire');
+        if (!umpireClubId) umpireClubId = sessionStorage.getItem('pendingUmpireClub');
+        if (!umpireAction) umpireAction = sessionStorage.getItem('pendingUmpireAction');
+        sessionStorage.removeItem('pendingUmpire');
+        sessionStorage.removeItem('pendingUmpireClub');
+        sessionStorage.removeItem('pendingUmpireAction');
+
+        if (umpireId && umpireClubId && umpireAction === 'volunteer') {
+          pendingUmpireVolunteer = { assignmentId: umpireId };
+          if (user.isAnonymous) {
+            enterClubAsGuest(umpireClubId);
+          } else {
+            handleJoinClub(umpireClubId);
+          }
+        } else if (pollId && pollClubId) {
           // Poll link: enter the club and navigate to polls
           pendingPollNav = true;
           if (voteParam && ['yes','no','maybe'].indexOf(voteParam) >= 0) {
@@ -977,6 +984,12 @@
       if (pollClubId) sessionStorage.setItem('pendingPollClub', pollClubId);
       var voteP = params.get('vote');
       if (voteP) sessionStorage.setItem('pendingVote', voteP);
+      var uId = params.get('umpire');
+      if (uId) sessionStorage.setItem('pendingUmpire', uId);
+      var uClub = params.get('club');
+      if (uClub) sessionStorage.setItem('pendingUmpireClub', uClub);
+      var uAction = params.get('action');
+      if (uAction) sessionStorage.setItem('pendingUmpireAction', uAction);
       showScreen('signin');
     }
   });
@@ -1286,6 +1299,7 @@
               members = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
               renderMembers();
               renderPolls();
+              renderDashboard();
               populateRecordForm();
             })
         );
@@ -1297,10 +1311,9 @@
             .onSnapshot(function(snap) {
               polls = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
               renderPolls();
+              renderPollReminders();
             })
         );
-
-        // Subscribe to umpire assignments
         unsubs.push(
           db.collection('clubs').doc(clubId).collection('umpireAssignments')
             .orderBy('matchDate', 'desc')
@@ -1311,7 +1324,15 @@
         );
 
         showScreen('app');
-        if (pendingPollNav) {
+        if (pendingUmpireVolunteer) {
+          var umpVol = pendingUmpireVolunteer;
+          pendingUmpireVolunteer = null;
+          showTab('polls');
+          switchPollsSubtab('umpiring');
+          setTimeout(function() {
+            volunteerUmpire(umpVol.assignmentId);
+          }, 1500);
+        } else if (pendingPollNav) {
           var voteToCast = pendingVote;
           pendingPollNav = false;
           pendingVote = null;
@@ -1419,6 +1440,7 @@
             members = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
             renderMembers();
             renderPolls();
+            renderDashboard();
           })
       );
 
@@ -1429,11 +1451,30 @@
           .onSnapshot(function(snap) {
             polls = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
             renderPolls();
+            renderPollReminders();
+          })
+      );
+
+      // Subscribe to umpire assignments (read-only for guests)
+      unsubs.push(
+        db.collection('clubs').doc(clubId).collection('umpireAssignments')
+          .orderBy('matchDate', 'desc')
+          .onSnapshot(function(snap) {
+            umpireAssignments = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
+            renderUmpiring();
           })
       );
 
       showScreen('app');
-      if (pendingPollNav) {
+      if (pendingUmpireVolunteer) {
+        var umpVol = pendingUmpireVolunteer;
+        pendingUmpireVolunteer = null;
+        showTab('polls');
+        switchPollsSubtab('umpiring');
+        setTimeout(function() {
+          volunteerUmpire(umpVol.assignmentId);
+        }, 1500);
+      } else if (pendingPollNav) {
         var voteToCast = pendingVote;
         pendingPollNav = false;
         pendingVote = null;
@@ -1874,7 +1915,7 @@
     document.getElementById('menuSettingsGroup').style.display = isActual ? '' : 'none';
     document.getElementById('addMemberSection').style.display = isActual ? 'block' : 'none';
     if (isActual && currentClub) loadPendingInvites();
-    document.getElementById('menuImportItem').style.display = isActual ? '' : 'none';
+
     // Show/hide pending chip based on approval workflow
     var chipPending = document.getElementById('chipPending');
     if (currentClub && currentClub.requireApproval) {
@@ -1894,8 +1935,122 @@
     }
   }
 
+  // ── Poll Reminder Banner + Browser Notification ──
+  var pollReminderNotified = {}; // track which polls we've already notified for this session
+  var pollReminderDismissed = {}; // track dismissed banners for this session
+
+  function dismissPollReminder(pollId) {
+    pollReminderDismissed[pollId] = true;
+    renderPollReminders();
+  }
+
+  function renderPollReminders() {
+    var banner = document.getElementById('pollReminderBanner');
+    if (!banner || !isTreasurer() || !currentClub) { if (banner) banner.innerHTML = ''; return; }
+
+    var now = new Date();
+    var twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+    var html = '';
+
+    polls.forEach(function(poll) {
+      if (poll.status !== 'open' || !poll.matchDate) return;
+      if (pollReminderDismissed[poll.id]) return;
+      var matchDate = new Date(poll.matchDate + 'T00:00:00');
+      var diff = matchDate.getTime() - now.getTime();
+      if (diff < 0 || diff > twoDaysMs) return; // only within 2 days
+
+      var responses = poll.responses || {};
+      var yesCount = 0;
+      Object.keys(responses).forEach(function(uid) {
+        if (responses[uid].response === 'yes') yesCount++;
+      });
+
+      if (yesCount >= 11) return; // already have enough
+
+      // Find non-responders and non-yes members
+      var nonResponders = members.filter(function(m) {
+        if (m.isPlaceholder) return false;
+        var r = responses[m.id];
+        return !r || r.response !== 'yes';
+      });
+      var names = nonResponders.map(function(m) { return m.name || 'Unknown'; });
+      var daysText = diff < 24 * 60 * 60 * 1000 ? 'TODAY' : 'in 1 day';
+
+      html += '<div class="poll-reminder" style="background:#FFF3E0;border:1px solid #FF9800;border-radius:10px;padding:12px;margin-bottom:12px;position:relative;">';
+      html += '  <button onclick="dismissPollReminder(\'' + poll.id + '\')" style="position:absolute;top:8px;right:8px;background:none;border:none;color:#999;font-size:16px;cursor:pointer;line-height:1;padding:2px 4px;" title="Dismiss">✕</button>';
+      html += '  <div style="font-weight:600;font-size:13px;padding-right:24px;">⚠️ Match ' + daysText + (poll.opponent ? ' vs ' + escHtml(poll.opponent) : '') + ' — only ' + yesCount + '/11 confirmed!</div>';
+      html += '  <div style="font-size:11px;color:#666;margin-top:4px;">' + names.length + ' member' + (names.length > 1 ? 's' : '') + ' haven\'t confirmed: ' + escHtml(names.slice(0, 5).join(', ')) + (names.length > 5 ? '…' : '') + '</div>';
+      html += '  <button onclick="nudgeNonResponders(\'' + poll.id + '\')" style="margin-top:8px;padding:6px 14px;background:#25D366;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">' + WA_ICON_HTML + ' Nudge on WhatsApp</button>';
+      html += '</div>';
+
+      // Browser notification (once per poll per session)
+      if (!pollReminderNotified[poll.id]) {
+        pollReminderNotified[poll.id] = true;
+        firePollReminderNotification(poll, yesCount, daysText);
+      }
+    });
+
+    banner.innerHTML = html;
+  }
+
+  function nudgeNonResponders(pollId) {
+    var poll = polls.find(function(p) { return p.id === pollId; });
+    if (!poll || !currentClub) return;
+    var responses = poll.responses || {};
+    var nonResponders = members.filter(function(m) {
+      if (m.isPlaceholder) return false;
+      var r = responses[m.id];
+      return !r || r.response !== 'yes';
+    });
+    var names = nonResponders.map(function(m) { return m.name || 'Unknown'; });
+    var clubName = currentClub.name || 'Club';
+    var yesCount = 0;
+    Object.keys(responses).forEach(function(uid) {
+      if (responses[uid].response === 'yes') yesCount++;
+    });
+
+    var text = '🏏 *' + clubName + ' — Availability Reminder*\n\n';
+    text += '📅 Match: ' + (poll.matchDate || 'TBD');
+    if (poll.opponent) text += ' vs ' + poll.opponent;
+    if (poll.location) text += '\n📍 ' + poll.location;
+    text += '\n\n⚠️ We only have *' + yesCount + '/11* confirmed so far!\n\n';
+    text += '🙏 Waiting for response from:\n';
+    names.forEach(function(n) { text += '• ' + n + '\n'; });
+    text += '\n👉 Please respond ASAP:\n';
+
+    var baseUrl = window.location.origin + window.location.pathname;
+    var base = baseUrl + '?poll=' + pollId + '&club=' + currentClub.id;
+    text += '• ✅ Yes → ' + base + '&vote=yes\n';
+    text += '• ❌ No → ' + base + '&vote=no\n';
+    text += '• 🤔 Maybe → ' + base + '&vote=maybe\n';
+    text += '\n— _via ClubMates_';
+
+    shareViaWhatsApp(text);
+  }
+
+  function firePollReminderNotification(poll, yesCount, daysText) {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+      showPollNotification(poll, yesCount, daysText);
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then(function(perm) {
+        if (perm === 'granted') showPollNotification(poll, yesCount, daysText);
+      });
+    }
+  }
+
+  function showPollNotification(poll, yesCount, daysText) {
+    var title = '🏏 Match ' + daysText + '!';
+    var body = 'Only ' + yesCount + '/11 confirmed' + (poll.opponent ? ' for vs ' + poll.opponent : '') + '. Open ClubMates to nudge your team.';
+    try {
+      var n = new Notification(title, { body: body, icon: '🏏', tag: 'poll-' + poll.id });
+      n.onclick = function() { window.focus(); showTab('polls'); };
+    } catch(e) { /* ignore */ }
+  }
+
   function renderDashboard() {
     if (!currentClub) return;
+    renderPollReminders();
     var curr = currentClub.currency || '₹';
 
     var approvedTx = transactions.filter(function(t) { return t.status === 'approved'; });
@@ -1914,6 +2069,15 @@
     var balance = income - expenses;
     document.getElementById('dashBalance').textContent = curr + formatNum(balance);
     document.getElementById('dashBalanceSub').textContent = 'Income: ' + curr + formatNum(income) + ' | Expenses: ' + curr + formatNum(expenses);
+
+    // Member count + manager names on balance card (right column)
+    var managers = members.filter(function(m) { return m.role === 'owner' || m.role === 'treasurer'; })
+      .map(function(m) { return m.name || m.email || 'Unknown'; })
+      .sort(function(a, b) { return a.localeCompare(b); })
+      .slice(0, 3);
+    document.getElementById('dashMemberCount').textContent = '👥 ' + members.length + ' member' + (members.length !== 1 ? 's' : '');
+    document.getElementById('dashManagerNames').textContent = managers.length > 0 ? 'Managed by ' + managers.join(', ') : '';
+
     document.getElementById('dashContributions').textContent = curr + formatNum(contributions);
     document.getElementById('dashSponsorships').textContent = curr + formatNum(sponsorships);
     document.getElementById('dashExpense').textContent = curr + formatNum(expenses);
@@ -2368,231 +2532,6 @@
   }
 
   // ═══════════════════════════════════════════════════════════
-  // ── V1 Import ──
-  // ═══════════════════════════════════════════════════════════
-  var v1ImportData = [];
-
-  function openImportModal() {
-    if (!isTreasurer()) { showToast('Only treasurers can import data', 'error'); return; }
-    v1ImportData = [];
-    document.getElementById('importV1Url').value = '';
-    document.getElementById('importPreview').style.display = 'none';
-    document.getElementById('importProgress').style.display = 'none';
-    document.getElementById('importFetchBtn').style.display = '';
-    document.getElementById('importRunBtn').style.display = 'none';
-    document.getElementById('importFetchBtn').disabled = false;
-    document.getElementById('importFetchBtn').textContent = 'Fetch V1 Data';
-    document.getElementById('importModal').style.display = 'flex';
-  }
-
-  function closeImportModal() {
-    document.getElementById('importModal').style.display = 'none';
-  }
-
-  function fetchV1Data() {
-    var url = document.getElementById('importV1Url').value.trim();
-    if (!url) { showToast('Paste the V1 Apps Script URL', 'error'); return; }
-
-    var btn = document.getElementById('importFetchBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Fetching...';
-
-    // JSONP fetch from V1 Google Apps Script
-    var callbackName = '_v1import_' + Date.now();
-    var separator = url.indexOf('?') >= 0 ? '&' : '?';
-    var fullUrl = url + separator + 'action=getAll&callback=' + callbackName;
-
-    var timer = setTimeout(function() {
-      cleanup();
-      btn.disabled = false;
-      btn.textContent = 'Fetch V1 Data';
-      showToast('Timeout: Could not reach V1 API', 'error');
-    }, 15000);
-
-    window[callbackName] = function(result) {
-      cleanup();
-      btn.disabled = false;
-      btn.textContent = 'Fetch V1 Data';
-
-      if (!result || !result.success || !result.data || !result.data.length) {
-        showToast('No transactions found in V1', 'error');
-        return;
-      }
-
-      v1ImportData = result.data;
-
-      // Count by type
-      var counts = { contribution: 0, expense: 0, sponsorship: 0 };
-      var total = 0;
-      v1ImportData.forEach(function(tx) {
-        var t = (tx.type || '').toLowerCase();
-        if (counts[t] !== undefined) counts[t]++;
-        total += parseFloat(tx.amount) || 0;
-      });
-
-      document.getElementById('importPreviewStats').innerHTML =
-        '<div>' + v1ImportData.length + ' transactions found</div>' +
-        '<div style="margin-top:4px;">💰 ' + counts.contribution + ' contributions · 🧾 ' + counts.expense + ' expenses · 🤝 ' + counts.sponsorship + ' sponsorships</div>';
-      document.getElementById('importPreview').style.display = '';
-      document.getElementById('importFetchBtn').style.display = 'none';
-      document.getElementById('importRunBtn').style.display = '';
-    };
-
-    function cleanup() {
-      clearTimeout(timer);
-      delete window[callbackName];
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-    }
-
-    var script = document.createElement('script');
-    script.src = fullUrl;
-    script.onerror = function() {
-      cleanup();
-      btn.disabled = false;
-      btn.textContent = 'Fetch V1 Data';
-      showToast('Failed to connect to V1 API', 'error');
-    };
-    document.head.appendChild(script);
-  }
-
-  function runV1Import() {
-    if (!v1ImportData.length || !currentClub) return;
-
-    var btn = document.getElementById('importRunBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Importing...';
-
-    document.getElementById('importProgress').style.display = '';
-    var bar = document.getElementById('importProgressBar');
-    var text = document.getElementById('importProgressText');
-    var total = v1ImportData.length;
-    var done = 0;
-    var skipped = 0;
-    var failed = 0;
-    var batch = db.batch();
-    var txRef = db.collection('clubs').doc(currentClub.id).collection('transactions');
-
-    // Convert and batch-write all transactions
-    v1ImportData.forEach(function(v1tx) {
-      var type = (v1tx.type || 'contribution').toLowerCase();
-      if (type !== 'contribution' && type !== 'expense' && type !== 'sponsorship') {
-        type = 'contribution';
-      }
-
-      var date = v1tx.date || '';
-      // Handle date objects or ISO strings
-      if (date && date.length > 10) date = date.split('T')[0];
-
-      var txData = {
-        type: type,
-        amount: parseFloat(v1tx.amount) || 0,
-        description: v1tx.description || '',
-        category: v1tx.category || 'General',
-        date: date,
-        recordedBy: {
-          uid: currentUser.uid,
-          name: v1tx.recordedby || v1tx.recordedBy || currentUser.displayName || currentUser.email,
-          email: currentUser.email
-        },
-        status: 'approved',
-        approvedBy: {
-          uid: currentUser.uid,
-          name: currentUser.displayName || currentUser.email
-        },
-        approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        importedFrom: 'v1',
-        v1Id: v1tx.id || null
-      };
-
-      var docRef = txRef.doc();
-      batch.set(docRef, txData);
-    });
-
-    // Firestore batches have a 500 doc limit, so split if needed
-    if (total <= 500) {
-      batch.commit().then(function() {
-        bar.style.width = '100%';
-        text.textContent = total + ' / ' + total + ' imported';
-        btn.disabled = false;
-        btn.textContent = 'Done!';
-        btn.style.background = 'var(--primary)';
-        showToast('Imported ' + total + ' transactions from V1!', 'success');
-      }).catch(function(err) {
-        btn.disabled = false;
-        btn.textContent = 'Import Failed';
-        showToast('Import error: ' + err.message, 'error');
-      });
-    } else {
-      // Split into batches of 500
-      var batches = [];
-      var currentBatch = db.batch();
-      var count = 0;
-
-      v1ImportData.forEach(function(v1tx) {
-        var type = (v1tx.type || 'contribution').toLowerCase();
-        if (type !== 'contribution' && type !== 'expense' && type !== 'sponsorship') type = 'contribution';
-        var date = v1tx.date || '';
-        if (date && date.length > 10) date = date.split('T')[0];
-
-        var txData = {
-          type: type,
-          amount: parseFloat(v1tx.amount) || 0,
-          description: v1tx.description || '',
-          category: v1tx.category || 'General',
-          date: date,
-          recordedBy: {
-            uid: currentUser.uid,
-            name: v1tx.recordedby || v1tx.recordedBy || currentUser.displayName || currentUser.email,
-            email: currentUser.email
-          },
-          status: 'approved',
-          approvedBy: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
-          approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          importedFrom: 'v1',
-          v1Id: v1tx.id || null
-        };
-
-        currentBatch.set(txRef.doc(), txData);
-        count++;
-
-        if (count >= 500) {
-          batches.push(currentBatch);
-          currentBatch = db.batch();
-          count = 0;
-        }
-      });
-      if (count > 0) batches.push(currentBatch);
-
-      var batchDone = 0;
-      var commitNext = function() {
-        if (batchDone >= batches.length) {
-          bar.style.width = '100%';
-          text.textContent = total + ' / ' + total + ' imported';
-          btn.disabled = false;
-          btn.textContent = 'Done!';
-          btn.style.background = 'var(--primary)';
-          showToast('Imported ' + total + ' transactions from V1!', 'success');
-          return;
-        }
-        batches[batchDone].commit().then(function() {
-          batchDone++;
-          var progress = Math.min(100, Math.round((batchDone * 500 / total) * 100));
-          bar.style.width = progress + '%';
-          text.textContent = Math.min(batchDone * 500, total) + ' / ' + total;
-          commitNext();
-        }).catch(function(err) {
-          btn.disabled = false;
-          btn.textContent = 'Import Failed';
-          showToast('Batch error: ' + err.message, 'error');
-        });
-      };
-      commitNext();
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════
   // ── Umpiring Roster ──
   // ═══════════════════════════════════════════════════════════
   function openCreateUmpireModal() {
@@ -2600,27 +2539,45 @@
     document.getElementById('umpireMatchTitle').value = '';
     document.getElementById('umpireMatchDate').value = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
     document.getElementById('umpireVenue').value = '';
-    document.getElementById('umpireMethod').value = 'manual';
+    document.getElementById('umpireMethod').value = 'volunteer';
     document.getElementById('diceResult').style.display = 'none';
 
     // Populate assignee dropdown
     var sel = document.getElementById('umpireAssignTo');
     var opts = '';
     members.forEach(function(m) {
+      if (m.isPlaceholder) return;
       opts += '<option value="' + escHtml(m.uid) + '">' + escHtml(m.name || m.email || m.uid) + '</option>';
     });
     sel.innerHTML = opts;
 
-    // Watch method change for dice
-    document.getElementById('umpireMethod').onchange = function() {
-      if (this.value === 'dice') {
-        rollUmpireDice();
-      } else {
-        document.getElementById('diceResult').style.display = 'none';
-      }
-    };
-
+    // Set initial UI state
+    onUmpireMethodChange();
     document.getElementById('createUmpireModal').classList.add('show');
+  }
+
+  function onUmpireMethodChange() {
+    var method = document.getElementById('umpireMethod').value;
+    var assignGroup = document.getElementById('umpireAssignToGroup');
+    var volunteerNote = document.getElementById('umpireVolunteerNote');
+    var diceResult = document.getElementById('diceResult');
+    var btn = document.getElementById('createUmpireBtn');
+
+    assignGroup.style.display = 'none';
+    volunteerNote.style.display = 'none';
+    diceResult.style.display = 'none';
+
+    if (method === 'volunteer') {
+      volunteerNote.style.display = '';
+      btn.textContent = 'Create & Share';
+    } else if (method === 'manual') {
+      assignGroup.style.display = '';
+      btn.textContent = 'Assign';
+    } else if (method === 'dice') {
+      diceResult.style.display = '';
+      btn.textContent = 'Assign';
+      rollUmpireDice();
+    }
   }
 
   function closeCreateUmpireModal() {
@@ -2678,19 +2635,22 @@
     var title = document.getElementById('umpireMatchTitle').value.trim();
     var date = document.getElementById('umpireMatchDate').value;
     var venue = document.getElementById('umpireVenue').value.trim();
-    var assignToUid = document.getElementById('umpireAssignTo').value;
     var method = document.getElementById('umpireMethod').value;
 
     if (!title) { showToast('Enter a match title', 'error'); return; }
     if (!date) { showToast('Select a match date', 'error'); return; }
-    if (!assignToUid) { showToast('Select who to assign', 'error'); return; }
 
-    var assignee = members.find(function(m) { return m.uid === assignToUid; });
-    if (!assignee) { showToast('Member not found', 'error'); return; }
+    var assignee = null;
+    if (method !== 'volunteer') {
+      var assignToUid = document.getElementById('umpireAssignTo').value;
+      if (!assignToUid) { showToast('Select who to assign', 'error'); return; }
+      assignee = members.find(function(m) { return m.uid === assignToUid; });
+      if (!assignee) { showToast('Member not found', 'error'); return; }
+    }
 
     var btn = document.getElementById('createUmpireBtn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Assigning...';
+    btn.innerHTML = '<span class="spinner"></span> Creating...';
 
     // Determine season (e.g. "2025")
     var season = date.split('-')[0];
@@ -2699,10 +2659,10 @@
       matchTitle: title,
       matchDate: date,
       venue: venue,
-      assignedTo: { uid: assignee.uid, name: assignee.name || assignee.email },
-      assignedBy: method === 'dice' ? 'dice' : 'manual',
+      assignedTo: assignee ? { uid: assignee.uid, name: assignee.name || assignee.email } : null,
+      assignedBy: method,
       assignedByUser: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
-      status: 'upcoming', // upcoming, completed, swapped
+      status: 'upcoming',
       swapRequestedWith: null,
       season: season,
       rewardPoints: 0,
@@ -2710,14 +2670,20 @@
     };
 
     db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').add(data)
-      .then(function() {
+      .then(function(docRef) {
         btn.disabled = false;
-        btn.textContent = 'Assign';
-        showToast('Umpire assigned: ' + assignee.name + ' 🏏', 'success');
+        btn.textContent = method === 'volunteer' ? 'Create & Share' : 'Assign';
+        if (method === 'volunteer') {
+          showToast('Umpire slot created — sharing to WhatsApp!', 'success');
+          shareUmpireVolunteerToWhatsApp(docRef.id, title, date, venue);
+        } else {
+          showToast('Umpire assigned: ' + assignee.name + ' 🏏', 'success');
+          shareUmpireToWhatsApp(docRef.id);
+        }
         closeCreateUmpireModal();
       }).catch(function(err) {
         btn.disabled = false;
-        btn.textContent = 'Assign';
+        btn.textContent = method === 'volunteer' ? 'Create & Share' : 'Assign';
         showToast('Error: ' + err.message, 'error');
       });
   }
@@ -2769,29 +2735,45 @@
       list.forEach(function(a) {
         var isPast = a.matchDate < today;
         var isMe = a.assignedTo && a.assignedTo.uid === currentUser.uid;
-        html += '<div class="umpire-card' + (isMe ? ' my-duty' : '') + (isPast ? ' past' : '') + '">';
+        var isOpen = !a.assignedTo; // open volunteer slot
+        html += '<div class="umpire-card' + (isMe ? ' my-duty' : '') + (isPast ? ' past' : '') + (isOpen ? ' open-slot' : '') + '">';
         html += '  <div class="umpire-date">' + escHtml(a.matchDate || '') + '</div>';
         html += '  <div class="umpire-details">';
         html += '    <div class="umpire-title">' + escHtml(a.matchTitle || '') + '</div>';
         if (a.venue) html += '    <div class="umpire-venue">📍 ' + escHtml(a.venue) + '</div>';
-        html += '    <div class="umpire-assignee">🏏 ' + escHtml(a.assignedTo ? a.assignedTo.name : 'TBD');
-        if (a.assignedBy === 'dice') html += ' <span style="font-size:10px;color:var(--text-secondary);">(🎲 dice roll)</span>';
-        html += '</div>';
-        // Swap button: current assignee can request swap, or anyone can volunteer
-        if (!isPast && !guest) {
-          if (isMe && !a.swapRequestedWith) {
-            html += '    <button class="swap-btn" onclick="requestUmpireSwap(\'' + a.id + '\')">🔄 Request Swap</button>';
-          } else if (a.swapRequestedWith && a.swapRequestedWith.uid === currentUser.uid) {
-            html += '    <button class="swap-btn accept" onclick="acceptUmpireSwap(\'' + a.id + '\')">✅ Accept Swap</button>';
-            html += '    <button class="swap-btn decline" onclick="declineUmpireSwap(\'' + a.id + '\')">❌ Decline</button>';
-          } else if (a.swapRequestedWith) {
-            html += '    <div style="font-size:11px;color:var(--pending);">🔄 Swap requested with ' + escHtml(a.swapRequestedWith.name) + '</div>';
-          } else if (!isMe) {
-            html += '    <button class="swap-btn volunteer" onclick="volunteerUmpire(\'' + a.id + '\')">🙋 I\'ll do it</button>';
+
+        if (isOpen) {
+          // Open volunteer slot
+          html += '    <div class="umpire-assignee" style="color:var(--warning);font-weight:600;">🙋 Awaiting Volunteer</div>';
+          if (!isPast && !guest) {
+            html += '    <button class="swap-btn volunteer" style="background:#E8F5E9;font-weight:600;" onclick="volunteerUmpire(\'' + a.id + '\')">🙋 I\'ll Volunteer!</button>';
+          }
+          // Treasurer can manually assign if nobody volunteers
+          if (!isPast && isTreasurer()) {
+            html += '    <button class="swap-btn" onclick="manualAssignUmpire(\'' + a.id + '\')">👤 Assign Manually</button>';
+          }
+        } else {
+          // Assigned slot
+          html += '    <div class="umpire-assignee">🏏 ' + escHtml(a.assignedTo.name);
+          if (a.assignedBy === 'dice') html += ' <span style="font-size:10px;color:var(--text-secondary);">(🎲 dice roll)</span>';
+          else if (a.assignedBy === 'voluntary') html += ' <span style="font-size:10px;color:var(--text-secondary);">(🙋 volunteered)</span>';
+          html += '</div>';
+          // Swap button: current assignee can request swap, or anyone can volunteer for swap
+          if (!isPast && !guest) {
+            if (isMe && !a.swapRequestedWith) {
+              html += '    <button class="swap-btn" onclick="requestUmpireSwap(\'' + a.id + '\')">🔄 Request Swap</button>';
+            } else if (a.swapRequestedWith && a.swapRequestedWith.uid === currentUser.uid) {
+              html += '    <button class="swap-btn accept" onclick="acceptUmpireSwap(\'' + a.id + '\')">✅ Accept Swap</button>';
+              html += '    <button class="swap-btn decline" onclick="declineUmpireSwap(\'' + a.id + '\')">❌ Decline</button>';
+            } else if (a.swapRequestedWith) {
+              html += '    <div style="font-size:11px;color:var(--pending);">🔄 Swap requested with ' + escHtml(a.swapRequestedWith.name) + '</div>';
+            }
           }
         }
-        // WhatsApp share button
-        html += '    <button class="swap-btn" style="background:#E8F5E9;color:#25D366;border-color:#25D366;margin-top:4px;" onclick="shareUmpireToWhatsApp(\'' + a.id + '\')">' + WA_ICON_HTML + ' Share</button>';
+        // WhatsApp share button (treasurer only)
+        if (isTreasurer()) {
+          html += '    <button class="swap-btn" style="background:#E8F5E9;color:#25D366;border-color:#25D366;margin-top:4px;" onclick="' + (isOpen ? 'shareUmpireVolunteerToWhatsApp(\'' + a.id + '\',\'' + escHtml(a.matchTitle || '') + '\',\'' + (a.matchDate || '') + '\',\'' + escHtml(a.venue || '') + '\')' : 'shareUmpireToWhatsApp(\'' + a.id + '\')') + '">' + WA_ICON_HTML + ' Share</button>';
+        }
         html += '  </div>';
         // Delete for treasurer
         if (isTreasurer()) {
@@ -2911,9 +2893,32 @@
     db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).update({
       assignedTo: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
       assignedBy: 'voluntary',
-      status: 'swapped'
+      status: 'upcoming'
     }).then(function() {
       showToast('You volunteered! Thanks 🏏', 'success');
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function manualAssignUmpire(assignmentId) {
+    // Treasurer manually assigns an open volunteer slot
+    var assignment = umpireAssignments.find(function(a) { return a.id === assignmentId; });
+    if (!assignment || !isTreasurer()) return;
+
+    var opts = members.filter(function(m) { return !m.isPlaceholder; }).map(function(m) { return m.name || m.email; });
+    var pick = prompt('Assign umpire to which member?\\n\\n' + opts.map(function(n, i) { return (i + 1) + '. ' + n; }).join('\\n') + '\\n\\nEnter the number:');
+    if (!pick) return;
+    var idx = parseInt(pick) - 1;
+    var realMembers = members.filter(function(m) { return !m.isPlaceholder; });
+    if (idx < 0 || idx >= realMembers.length) { showToast('Invalid selection', 'error'); return; }
+    var assignee = realMembers[idx];
+
+    db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).update({
+      assignedTo: { uid: assignee.uid, name: assignee.name || assignee.email },
+      assignedBy: 'manual'
+    }).then(function() {
+      showToast('Assigned to ' + assignee.name + ' 🏏', 'success');
     }).catch(function(err) {
       showToast('Error: ' + err.message, 'error');
     });
@@ -2954,6 +2959,26 @@
     text += '🧑‍⚖️ Umpire: ' + (a.assignedTo ? a.assignedTo.name : 'TBD') + '\n';
     if (a.assignedBy === 'dice') text += '🎲 Selected by dice roll\n';
     else if (a.assignedBy === 'voluntary') text += '🙋 Volunteered\n';
+    text += '\n— _via ClubMates_';
+    shareViaWhatsApp(text);
+  }
+
+  function shareUmpireVolunteerToWhatsApp(assignmentId, title, date, venue) {
+    // If called with just assignmentId, look up details
+    if (!title) {
+      var a = umpireAssignments.find(function(u) { return u.id === assignmentId; });
+      if (a) { title = a.matchTitle; date = a.matchDate; venue = a.venue; }
+    }
+    var clubName = (currentClub && currentClub.name) || 'Club';
+    var baseUrl = window.location.origin + window.location.pathname;
+    var link = baseUrl + '?umpire=' + assignmentId + '&club=' + currentClub.id + '&action=volunteer';
+
+    var text = '🏏 *' + clubName + ' — Umpire Needed!*\n\n';
+    text += '📅 Date: ' + (date || 'TBD') + '\n';
+    if (title) text += '🆚 Match: ' + title + '\n';
+    if (venue) text += '📍 Venue: ' + venue + '\n';
+    text += '\n🙋 *Volunteer to umpire this match!*\n';
+    text += '• 👉 Tap to volunteer → ' + link + '\n';
     text += '\n— _via ClubMates_';
     shareViaWhatsApp(text);
   }
@@ -3084,8 +3109,6 @@
       .then(function() {
         var icon = response === 'yes' ? '✅' : response === 'no' ? '❌' : '🤔';
         showToast('Response recorded: ' + icon + ' ' + response.toUpperCase(), 'success');
-        // Offer to share vote to WhatsApp group for team visibility
-        shareVoteToWhatsApp(pollId, response);
       }).catch(function(err) {
         showToast('Error: ' + err.message, 'error');
       });
@@ -3167,11 +3190,11 @@
     if (matchDate) text += '📅 Match Date: ' + matchDate + '\n';
     if (opponent) text += '🆚 vs ' + opponent + '\n';
     if (location) text += '📍 ' + location + '\n';
-    text += '\n� *Tap your response:*\n\n';
-    text += '🟢 *YES, I\'m in!*\n' + base + '&vote=yes\n\n';
-    text += '🔴 *NO, can\'t make it*\n' + base + '&vote=no\n\n';
-    text += '🟡 *MAYBE*\n' + base + '&vote=maybe\n\n';
-    text += '\u2014 _via ClubMates_';
+    text += '\n👉 *Tap your response:*\n';
+    text += '• ✅ Yes → ' + base + '&vote=yes\n';
+    text += '• ❌ No → ' + base + '&vote=no\n';
+    text += '• 🤔 Maybe → ' + base + '&vote=maybe\n';
+    text += '\n— _via ClubMates_';
 
     shareViaWhatsApp(text);
   }
@@ -3184,9 +3207,11 @@
     var yes = [], no = [], maybe = [];
     Object.keys(responses).forEach(function(uid) {
       var r = responses[uid];
-      if (r.response === 'yes') yes.push(r.name || 'Unknown');
-      else if (r.response === 'no') no.push(r.name || 'Unknown');
-      else maybe.push(r.name || 'Unknown');
+      var member = members.find(function(m) { return m.id === uid; });
+      var name = (member && member.name) || r.name || 'Unknown';
+      if (r.response === 'yes') yes.push(name);
+      else if (r.response === 'no') no.push(name);
+      else maybe.push(name);
     });
 
     var text = '📊 *' + clubName + ' \u2014 Poll Results*\n\n';
@@ -3235,7 +3260,11 @@
         var isOpen = poll.status === 'open';
 
         html += '<div class="poll-card">';
-        html += '  <div class="poll-q">' + escHtml(poll.question || '') + '</div>';
+        html += '  <div style="display:flex;align-items:center;gap:8px;"><div class="poll-q" style="flex:1;">' + escHtml(poll.question || '') + '</div>';
+        if (isTreasurer()) {
+          html += '<button class="poll-btn-share" onclick="sharePollToWhatsApp(\'' + poll.id + '\')" title="Share poll on WhatsApp" style="flex-shrink:0;">' + WA_ICON_HTML + '</button>';
+        }
+        html += '</div>';
         html += '  <div class="poll-meta">';
         html += '    <span class="poll-status ' + poll.status + '">' + (isOpen ? 'Open' : 'Closed') + '</span>';
         if (poll.matchDate) html += '    <span>📅 ' + poll.matchDate + '</span>';
@@ -3270,7 +3299,9 @@
           html += '    <button class="poll-btn-no' + (myResponse === 'no' ? ' voted' : '') + '" onclick="respondToPoll(\'' + poll.id + '\',\'no\')">❌ No</button>';
           html += '    <button class="poll-btn-maybe' + (myResponse === 'maybe' ? ' voted' : '') + '" onclick="respondToPoll(\'' + poll.id + '\',\'maybe\')">🤔 Maybe</button>';
         }
-        html += '    <button class="poll-btn-share" onclick="sharePollToWhatsApp(\'' + poll.id + '\')">' + WA_ICON_HTML + '</button>';
+        if (myResponse) {
+          html += '    <button class="poll-btn-share" onclick="shareVoteToWhatsApp(\'' + poll.id + '\',\'' + myResponse + '\')" title="Share my vote">' + WA_ICON_HTML + ' My Vote</button>';
+        }
         if (isTreasurer()) {
           html += '    <button class="poll-btn-share" onclick="sharePollResultsToWhatsApp(\'' + poll.id + '\')">📋 Results</button>';
           if (isOpen) {
@@ -3288,7 +3319,9 @@
           Object.keys(responses).forEach(function(uid) {
             var r = responses[uid];
             var icon = r.response === 'yes' ? '✅' : r.response === 'no' ? '❌' : '🤔';
-            html += '    <div class="poll-detail-item"><span>' + icon + '</span><span style="flex:1;">' + escHtml(r.name || 'Unknown') + '</span></div>';
+            var member = members.find(function(m) { return m.id === uid; });
+            var dName = (member && member.name) || r.name || 'Unknown';
+            html += '    <div class="poll-detail-item"><span>' + icon + '</span><span style="flex:1;">' + escHtml(dName) + '</span></div>';
           });
           html += '  </div>';
         }
