@@ -273,6 +273,21 @@
   .modal-handle { width: 36px; height: 4px; background: #DDD; border-radius: 2px; margin: 0 auto 14px; }
   .modal h2 { font-size: 16px; margin-bottom: 14px; }
 
+  /* ── App Guide Accordion ── */
+  .guide-section { border-bottom: 1px solid #EEE; }
+  .guide-section:last-child { border-bottom: none; }
+  .guide-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text); }
+  .guide-header .guide-icon { font-size: 16px; width: 24px; text-align: center; margin-right: 8px; flex-shrink: 0; }
+  .guide-header .guide-arrow { font-size: 12px; color: #999; transition: transform 0.2s; }
+  .guide-section.open .guide-arrow { transform: rotate(90deg); }
+  .guide-body { display: none; padding: 0 0 12px 32px; font-size: 12px; color: #555; line-height: 1.6; }
+  .guide-section.open .guide-body { display: block; }
+  .guide-body ul { margin: 4px 0; padding-left: 16px; }
+  .guide-body li { margin-bottom: 3px; }
+  .guide-role { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; margin-left: 4px; }
+  .guide-role.all { background: #E8F5E9; color: var(--primary); }
+  .guide-role.treasurer { background: #FFF3E0; color: #E65100; }
+
   /* ── Toast ── */
   .toast { position: fixed; bottom: calc(var(--nav-height) + var(--safe-bottom) + 8px); left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.92); color: white; padding: 10px 20px; border-radius: 10px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity 0.25s; pointer-events: none; max-width: 85%; text-align: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   .toast.show { opacity: 1; }
@@ -704,6 +719,9 @@
     <div class="menu-item" onclick="signOut();closeMenu();">
       <span class="menu-icon">🔒</span> Sign Out
     </div>
+    <div class="menu-item" onclick="openAppGuide();closeMenu();">
+      <span class="menu-icon">ℹ️</span> App Guide
+    </div>
   </div>
 </div>
 
@@ -840,6 +858,132 @@
     </div>
     <button class="submit-btn" id="createUmpireBtn" onclick="createUmpireAssignment()" style="margin-bottom:8px;">Create & Share</button>
     <button class="submit-btn" onclick="closeCreateUmpireModal()" style="background:#F5F5F5;color:var(--text);">Cancel</button>
+  </div>
+</div>
+
+<!-- ── App Guide Modal ── -->
+<div id="appGuideModal" class="modal-overlay" onclick="if(event.target===this)closeAppGuide()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>ℹ️ ClubMates — App Guide</h2>
+
+    <div class="guide-section" onclick="toggleGuide(this)">
+      <div class="guide-header"><span><span class="guide-icon">📊</span>Dashboard</span><span class="guide-arrow">▶</span></div>
+      <div class="guide-body">
+        <ul>
+          <li>Live <b>approved balance</b> (income − expenses)</li>
+          <li>Pending transactions awaiting approval</li>
+          <li>Quick summary: contributions, expenses, sponsorships</li>
+          <li>Member count &amp; club managers at a glance</li>
+          <li>Share balance summary via WhatsApp</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section" onclick="toggleGuide(this)">
+      <div class="guide-header"><span><span class="guide-icon">➕</span>Record Transactions</span><span class="guide-arrow">▶</span></div>
+      <div class="guide-body">
+        <ul>
+          <li><b>Expense</b> — ground fees, equipment, travel, etc.</li>
+          <li><b>Contribution</b> — member dues, match-day fees</li>
+          <li><b>Sponsorship</b> — sponsor payments</li>
+          <li>Add description, amount, date, and category</li>
+          <li>Treasurer approves or rejects submissions <span class="guide-role treasurer">Treasurer</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section" onclick="toggleGuide(this)">
+      <div class="guide-header"><span><span class="guide-icon">📋</span>Transaction History</span><span class="guide-arrow">▶</span></div>
+      <div class="guide-body">
+        <ul>
+          <li>Full list of all transactions (approved, pending, rejected)</li>
+          <li>Search by description, member, or category</li>
+          <li>Filter by type (expense / contribution / sponsorship)</li>
+          <li>Tap any transaction to see details</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section" onclick="toggleGuide(this)">
+      <div class="guide-header"><span><span class="guide-icon">👥</span>Members</span><span class="guide-arrow">▶</span></div>
+      <div class="guide-body">
+        <ul>
+          <li>View all club members and their roles</li>
+          <li><b>Add manually</b> — create placeholder members <span class="guide-role treasurer">Treasurer</span></li>
+          <li><b>Invite by email</b> — send email invitations <span class="guide-role treasurer">Treasurer</span></li>
+          <li><b>Invite link</b> — share join link via WhatsApp</li>
+          <li>Change roles: Owner, Treasurer, Member <span class="guide-role treasurer">Treasurer</span></li>
+          <li>Members can claim placeholder accounts after joining</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section" onclick="toggleGuide(this)">
+      <div class="guide-header"><span><span class="guide-icon">📢</span>Polls (Match Availability)</span><span class="guide-arrow">▶</span></div>
+      <div class="guide-body">
+        <ul>
+          <li>Create polls for upcoming matches <span class="guide-role treasurer">Treasurer</span></li>
+          <li>Members respond: ✅ Yes, ❌ No, or 🤔 Maybe</li>
+          <li>Share poll links on WhatsApp <span class="guide-role treasurer">Treasurer</span></li>
+          <li>Auto-reminder banner when match is within 2 days &amp; &lt;11 confirmed</li>
+          <li>Nudge non-responders via WhatsApp <span class="guide-role treasurer">Treasurer</span></li>
+          <li>View results: who's in, who's out, who hasn't responded</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section" onclick="toggleGuide(this)">
+      <div class="guide-header"><span><span class="guide-icon">🏏</span>Umpire Duty</span><span class="guide-arrow">▶</span></div>
+      <div class="guide-body">
+        <ul>
+          <li>Create umpire assignments for matches <span class="guide-role treasurer">Treasurer</span></li>
+          <li><b>Volunteer mode</b> — share on WhatsApp, members tap to claim</li>
+          <li><b>Assign mode</b> — pick a member or use 🎲 random dice</li>
+          <li>Swap requests — members can request swaps, others accept</li>
+          <li>Track umpire history per member</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section" onclick="toggleGuide(this)">
+      <div class="guide-header"><span><span class="guide-icon">👁️</span>Guest Access</span><span class="guide-arrow">▶</span></div>
+      <div class="guide-body">
+        <ul>
+          <li>Enable in Club Settings <span class="guide-role treasurer">Treasurer</span></li>
+          <li><b>Open</b> — anyone with the link can view (read-only)</li>
+          <li><b>PIN protected</b> — guests need a 4-digit PIN to access</li>
+          <li>Guests can see balances, polls &amp; respond to polls</li>
+          <li>Guests cannot record transactions or manage members</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section" onclick="toggleGuide(this)">
+      <div class="guide-header"><span><span class="guide-icon">🔑</span>Roles &amp; Permissions</span><span class="guide-arrow">▶</span></div>
+      <div class="guide-body">
+        <ul>
+          <li><b>Owner</b> — full control, can delete club, manage all settings</li>
+          <li><b>Treasurer</b> — approve/reject transactions, create polls, manage members</li>
+          <li><b>Member</b> — record transactions, vote in polls, volunteer for umpire</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section" onclick="toggleGuide(this)">
+      <div class="guide-header"><span><span class="guide-icon">📤</span>Export &amp; Backup</span><span class="guide-arrow">▶</span></div>
+      <div class="guide-body">
+        <ul>
+          <li><b>Export to Excel</b> — download all transactions as .xlsx</li>
+          <li><b>Export JSON</b> — full backup of all club data</li>
+          <li>Access from the ☰ menu</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:12px;">
+      <button class="submit-btn" onclick="closeAppGuide()" style="background:#F5F5F5;color:var(--text);">Close</button>
+    </div>
   </div>
 </div>
 
@@ -1854,6 +1998,10 @@
     document.getElementById('guestPinGroup').style.display = v === 'pin' ? '' : 'none';
   }
   function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('show'); }
+
+  function openAppGuide() { document.getElementById('appGuideModal').classList.add('show'); }
+  function closeAppGuide() { document.getElementById('appGuideModal').classList.remove('show'); }
+  function toggleGuide(el) { el.classList.toggle('open'); }
 
   function saveClubSettings() {
     if (!isTreasurer()) return;
