@@ -1,0 +1,3685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#1B5E20" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="ClubMates" />
+<link rel="apple-touch-icon" href="clubmates-180.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="clubmates-192.png" />
+<title>ClubMates</title>
+<style>
+  /* ── Reset & Base ── */
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --primary: #1B5E20; --primary-light: #E8F5E9; --primary-dark: #0D3B13;
+    --danger: #D32F2F; --danger-light: #FFEBEE;
+    --warning: #F57F17; --warning-light: #FFF9C4;
+    --sponsor: #1565C0; --sponsor-light: #E3F2FD;
+    --pending: #E65100; --pending-light: #FFF3E0;
+    --bg: #F5F6F8; --card: #FFFFFF; --text: #1A1A1A; --text-secondary: #8A8A8A;
+    --border: #EBEBEB; --radius: 14px; --nav-height: 52px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { height: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100%; overflow-x: hidden; font-size: 14px; -webkit-font-smoothing: antialiased; }
+  input, select, button, textarea { font-family: inherit; font-size: 14px; }
+  input, select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--card); outline: none; transition: border-color 0.2s; color: var(--text); }
+  input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(27,94,32,0.08); }
+  label { display: block; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+  /* ── Mobile-first container ── */
+  .screen, #screen-app { max-width: 430px; margin: 0 auto; }
+  @media (min-width: 431px) {
+    body { background: #E8E8E8; }
+    .screen, #screen-app { box-shadow: 0 0 24px rgba(0,0,0,0.08); }
+    .bottom-nav { max-width: 430px; left: 50% !important; transform: translateX(-50%); }
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; min-height: 100vh; min-height: 100dvh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── Loading Screen ── */
+  #screen-loading { justify-content: center; align-items: center; background: var(--primary); color: white; }
+  #screen-loading .logo { font-size: 48px; margin-bottom: 12px; }
+  #screen-loading h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.3px; }
+  .spinner-lg { width: 28px; height: 28px; border: 3px solid rgba(255,255,255,0.25); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-top: 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Sign In Screen ── */
+  #screen-signin { justify-content: center; align-items: center; padding: 40px 28px; text-align: center; background: linear-gradient(160deg, #1B5E20 0%, #388E3C 50%, #43A047 100%); color: white; }
+  #screen-signin .logo { font-size: 56px; margin-bottom: 12px; }
+  #screen-signin h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.3px; }
+  #screen-signin p { font-size: 13px; opacity: 0.8; margin-bottom: 36px; line-height: 1.5; max-width: 280px; }
+  .google-btn { display: inline-flex; align-items: center; gap: 10px; background: white; color: #333; border: none; border-radius: 24px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.12); transition: transform 0.1s; }
+  .google-btn:active { transform: scale(0.96); }
+  .google-btn svg { width: 18px; height: 18px; }
+
+  /* ── Club List Screen ── */
+  #screen-clubs { padding: 0 0 20px 0; }
+  .clubs-header { background: var(--primary); color: white; padding: 18px 16px 14px; }
+  .clubs-header h1 { font-size: 20px; font-weight: 700; }
+  .clubs-header p { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+  .clubs-actions { display: flex; gap: 8px; padding: 12px 16px; }
+  .clubs-actions button { flex: 1; padding: 10px; border: 1.5px dashed var(--primary); background: var(--primary-light); color: var(--primary); border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .clubs-actions button:active { background: var(--primary); color: white; }
+  .club-list { padding: 0 16px; }
+  .club-card { background: var(--card); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; gap: 12px; }
+  .club-card:active { transform: scale(0.98); }
+  .club-avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+  .club-info { flex: 1; min-width: 0; }
+  .club-info h3 { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .club-info span { font-size: 11px; color: var(--text-secondary); }
+  .role-badge { font-size: 9px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 5px; }
+  .role-owner { background: var(--primary-light); color: var(--primary); }
+  .role-treasurer { background: var(--sponsor-light); color: var(--sponsor); }
+  .role-member { background: #F3F3F3; color: var(--text-secondary); }
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--text-secondary); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 16px; color: var(--text); margin-bottom: 6px; }
+  .empty-state p { font-size: 13px; }
+  .clubs-footer { padding: 14px 16px; text-align: center; }
+  .clubs-footer button { background: none; border: none; color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; padding: 6px 12px; }
+
+  /* ── Join Input ── */
+  .join-section { padding: 0 16px 12px; display: none; }
+  .join-section.show { display: block; }
+  .join-row { display: flex; gap: 8px; }
+  .join-row input { flex: 1; font-size: 13px; }
+  .join-row button { flex-shrink: 0; padding: 10px 16px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; }
+
+  /* ── Create Club Screen ── */
+  #screen-create { padding: 0; }
+  .form-header { background: var(--primary); color: white; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+  .form-header button { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 2px 4px; }
+  .form-header h2 { font-size: 16px; font-weight: 600; }
+  .form-body { padding: 20px 16px; }
+  .form-group { margin-bottom: 16px; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; gap: 12px; }
+  .toggle-row .label { font-size: 14px; font-weight: 500; }
+  .toggle-row .sublabel { font-size: 11px; color: var(--text-secondary); margin-top: 2px; line-height: 1.4; }
+  .toggle { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .slider { position: absolute; inset: 0; background: #D0D0D0; border-radius: 26px; cursor: pointer; transition: 0.25s; }
+  .toggle .slider:before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.25s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .toggle input:checked + .slider { background: var(--primary); }
+  .toggle input:checked + .slider:before { transform: translateX(20px); }
+  .submit-btn { width: 100%; padding: 13px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .submit-btn:active:not(:disabled) { opacity: 0.85; }
+
+  /* ── Join Confirm Screen ── */
+  #screen-join { justify-content: center; align-items: center; padding: 32px; text-align: center; }
+  #screen-join .club-preview { background: var(--card); border-radius: 16px; padding: 32px 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); max-width: 340px; width: 100%; }
+  #screen-join .club-preview .icon { font-size: 44px; margin-bottom: 10px; }
+  #screen-join .club-preview h2 { font-size: 18px; margin-bottom: 4px; }
+  #screen-join .club-preview p { color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row button { flex: 1; padding: 12px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; }
+  .btn-cancel { background: #F0F0F0; color: var(--text); }
+  .btn-confirm { background: var(--primary); color: white; }
+
+  /* ── Main App Screen ── */
+  #screen-app { padding: 0 0 calc(var(--nav-height) + var(--safe-bottom)) 0; }
+  .app-header { background: var(--primary); color: white; padding: 10px 14px; display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 100; }
+  .app-header .back-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 4px; }
+  .app-header h1 { flex: 1; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .app-header .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; cursor: pointer; }
+  .app-header .user-avatar:active { background: rgba(255,255,255,0.35); }
+
+  /* ── Header Menu Panel ── */
+  .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 300; display: none; }
+  .menu-overlay.show { display: block; }
+  .menu-panel { position: fixed; top: 0; right: 0; width: 280px; max-width: 85vw; height: 100%; background: var(--card); z-index: 310; box-shadow: -4px 0 20px rgba(0,0,0,0.12); transform: translateX(100%); transition: transform 0.25s ease; overflow-y: auto; padding-bottom: calc(var(--safe-bottom) + 16px); }
+  .menu-panel.show { transform: translateX(0); }
+  .menu-panel-header { background: var(--primary); color: white; padding: 18px 16px 14px; }
+  .menu-panel-header .mp-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .menu-panel-header .mp-email { font-size: 11px; opacity: 0.75; }
+  .menu-panel-header .mp-close { position: absolute; top: 14px; right: 12px; background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px; opacity: 0.8; }
+  .menu-group { padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .menu-group:last-child { border-bottom: none; }
+  .menu-group-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); padding: 8px 16px 4px; }
+  .menu-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; cursor: pointer; transition: background 0.1s; font-size: 14px; color: var(--text); }
+  .menu-item:active { background: #F5F5F5; }
+  .menu-item .menu-icon { font-size: 16px; width: 22px; text-align: center; }
+  .menu-item.danger { color: var(--danger); }
+
+  /* ── Tab Content ── */
+  .tab-content { display: none; padding: 12px 14px; }
+  .tab-content.active { display: block; }
+
+  /* ── Dashboard ── */
+  .balance-card { background: linear-gradient(135deg, var(--primary) 0%, #2E7D32 100%); color: white; border-radius: var(--radius); padding: 18px 16px; margin-bottom: 10px; }
+  .balance-card .label { font-size: 11px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+  .balance-card .amount { font-size: 28px; font-weight: 800; margin: 4px 0; letter-spacing: -0.5px; }
+  .balance-card .sub { font-size: 11px; opacity: 0.65; }
+  .pending-card { background: var(--pending-light); border: 1.5px solid var(--pending); border-radius: 12px; padding: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .pending-card .icon { font-size: 22px; }
+  .pending-card .info { flex: 1; }
+  .pending-card .info .amount { font-size: 17px; font-weight: 700; color: var(--pending); }
+  .pending-card .info .label { font-size: 11px; color: var(--text-secondary); }
+  .summary-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .summary-item { flex: 1; background: var(--card); border-radius: 10px; padding: 12px 10px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .summary-item .val { font-size: 16px; font-weight: 700; }
+  .summary-item .lbl { font-size: 10px; color: var(--text-secondary); margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+  .summary-item.contribution .val { color: var(--primary); }
+  .summary-item.sponsorship .val { color: var(--sponsor); }
+  .summary-item.expense .val { color: var(--danger); }
+  .section-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+
+  /* ── Transaction Items ── */
+  .tx-list { display: flex; flex-direction: column; gap: 6px; }
+  .tx-item { background: var(--card); border-radius: 12px; padding: 11px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 10px; position: relative; }
+  .tx-item.pending { border-left: 3px solid var(--pending); }
+  .tx-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .tx-icon.expense { background: var(--danger-light); }
+  .tx-icon.contribution { background: var(--primary-light); }
+  .tx-icon.sponsorship { background: var(--sponsor-light); }
+  .tx-details { flex: 1; min-width: 0; }
+  .tx-details .desc { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-details .meta { font-size: 10px; color: var(--text-secondary); margin-top: 1px; }
+  .tx-amount { text-align: right; flex-shrink: 0; }
+  .tx-amount .val { font-size: 13px; font-weight: 700; }
+  .tx-amount .status { font-size: 9px; margin-top: 1px; }
+  .tx-amount .val.expense { color: var(--danger); }
+  .tx-amount .val.contribution { color: var(--primary); }
+  .tx-amount .val.sponsorship { color: var(--sponsor); }
+  .tx-actions { display: flex; gap: 6px; margin-top: 6px; }
+  .tx-actions button { padding: 5px 12px; border-radius: 7px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; }
+  .btn-approve { background: var(--primary-light); color: var(--primary); }
+  .btn-reject { background: var(--danger-light); color: var(--danger); }
+  .btn-approve:active { background: var(--primary); color: white; }
+  .btn-reject:active { background: var(--danger); color: white; }
+  .tx-delete { position: absolute; top: 6px; right: 6px; background: none; border: none; color: #ccc; font-size: 14px; cursor: pointer; display: none; padding: 4px; }
+  .tx-item:hover .tx-delete { display: block; }
+  @media (pointer: coarse) { .tx-delete { display: block; } }
+
+  /* Multi-select */
+  .history-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+  .sort-select { width: auto; padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 600; color: var(--text-secondary); background: var(--card); cursor: pointer; }
+  .select-toggle { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 5px 12px; font-size: 11px; font-weight: 600; cursor: pointer; color: var(--text-secondary); }
+  .select-toggle.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .tx-checkbox { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; margin-right: 2px; }
+  .tx-item.selected { background: #E3F2FD; }
+  .bulk-bar { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); background: var(--card); border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 10px 16px; display: flex; align-items: center; gap: 12px; z-index: 100; max-width: 400px; width: calc(100% - 32px); }
+  .bulk-bar .bulk-count { font-size: 13px; font-weight: 600; flex: 1; }
+  .bulk-bar .bulk-delete { background: var(--danger); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .bulk-bar .bulk-deselect { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; cursor: pointer; color: var(--text-secondary); }
+  .bulk-bar .bulk-selall { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; cursor: pointer; color: var(--text-secondary); }
+
+  /* ── Record Form ── */
+  .type-selector { display: flex; gap: 6px; margin-bottom: 16px; }
+  .type-btn { flex: 1; padding: 10px 4px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--card); text-align: center; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .type-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+  .type-btn .emoji { font-size: 18px; display: block; margin-bottom: 2px; }
+
+  /* ── Search & Filter ── */
+  .search-box { margin-bottom: 10px; }
+  .search-box input { padding-left: 34px; font-size: 13px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23AAA'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 10px center; background-size: 16px; }
+  .filter-row { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .chip { padding: 6px 12px; border-radius: 18px; border: 1px solid var(--border); background: var(--card); font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .polls-subtab.active { color: var(--primary) !important; border-bottom-color: var(--primary) !important; }
+  .chip .badge { background: var(--pending); color: white; border-radius: 8px; padding: 1px 5px; font-size: 9px; margin-left: 3px; }
+
+  /* ── More Tab ── */
+  .more-section { background: var(--card); border-radius: 12px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .more-section .section-header { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); padding: 12px 14px 6px; }
+  .more-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+  .more-item:first-child, .more-item:nth-child(2) { border-top: none; }
+  .more-item:active { background: #F8F8F8; }
+  .more-item .mi-icon { font-size: 18px; width: 24px; text-align: center; }
+  .more-item .mi-label { flex: 1; font-size: 14px; }
+  .more-item .mi-arrow { color: #D0D0D0; font-size: 16px; }
+  .more-item.danger .mi-label { color: var(--danger); }
+
+  /* ── Member List ── */
+  .member-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .member-item:last-child { border-bottom: none; }
+  .member-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+  .member-avatar.placeholder { border: 2px dashed var(--pending); background: #FFF8E1; color: var(--pending); }
+  .member-info { flex: 1; min-width: 0; }
+  .member-info .name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .member-info .email { font-size: 10px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .member-stats { display: flex; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+  .member-stats .ms { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .member-stats .ms.contrib { background: #E8F5E9; color: #2E7D32; }
+  .member-stats .ms.expense { background: #FFEBEE; color: #C62828; }
+  .member-stats .ms.sponsor { background: #FFF3E0; color: #E65100; }
+  .member-role-select { padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 11px; width: auto; }
+
+  /* ── Bottom Nav ── */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: calc(var(--nav-height) + var(--safe-bottom)); padding-bottom: var(--safe-bottom); background: var(--card); display: flex; border-top: 1px solid var(--border); z-index: 200; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; color: var(--text-secondary); transition: color 0.15s; border: none; background: none; font-size: 10px; font-weight: 500; padding: 0; }
+  .nav-item .ni-icon { font-size: 20px; line-height: 1; }
+  .nav-item.active { color: var(--primary); font-weight: 600; }
+
+  /* ── Modal ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500; display: none; justify-content: center; align-items: flex-end; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: var(--card); border-radius: 16px 16px 0 0; width: 100%; max-width: 430px; max-height: 80vh; overflow-y: auto; padding: 16px; animation: slideUp 0.25s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 36px; height: 4px; background: #DDD; border-radius: 2px; margin: 0 auto 14px; }
+  .modal h2 { font-size: 16px; margin-bottom: 14px; }
+
+  /* ── Toast ── */
+  .toast { position: fixed; bottom: calc(var(--nav-height) + var(--safe-bottom) + 8px); left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.92); color: white; padding: 10px 20px; border-radius: 10px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity 0.25s; pointer-events: none; max-width: 85%; text-align: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .toast.show { opacity: 1; }
+  .toast.error { background: rgba(211,47,47,0.92); }
+  .toast.success { background: rgba(27,94,32,0.92); }
+
+  /* ── Utilities ── */
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
+  .hidden { display: none !important; }
+  .text-center { text-align: center; }
+  .mt-16 { margin-top: 16px; }
+  .mb-16 { margin-bottom: 16px; }
+  .export-link { display: inline-block; font-size: 12px; color: var(--primary); text-decoration: none; font-weight: 600; padding: 4px 0; cursor: pointer; }
+
+  /* ── Logo Upload ── */
+  .logo-upload { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .logo-preview { width: 72px; height: 72px; border-radius: 14px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; border: 2px dashed var(--border); transition: border-color 0.2s; }
+  .logo-preview:active { border-color: var(--primary); }
+  .logo-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .logo-preview .placeholder { text-align: center; line-height: 1.3; font-size: 10px; font-weight: 600; color: var(--text-secondary); }
+  .logo-upload-hint { font-size: 11px; color: var(--text-secondary); }
+  .club-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+  .app-header .club-logo { width: 26px; height: 26px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+  .view-as-banner { background: var(--warning-light); border: 1px solid var(--warning); border-radius: 8px; padding: 8px 12px; margin: 8px 14px 0; font-size: 12px; color: #5D4037; display: flex; align-items: center; justify-content: space-between; }
+  .view-as-banner button { background: var(--warning); color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600; cursor: pointer; }
+  .add-member-form { display: flex; gap: 8px; padding: 8px 14px 12px; }
+  .add-member-form input { flex: 1; font-size: 13px; }
+  .add-member-form button { flex-shrink: 0; padding: 10px 14px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 12px; cursor: pointer; }
+  .pending-invite-item { display: flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 12px; color: var(--text-secondary); }
+  .pending-invite-item .pi-email { flex: 1; }
+  .pending-invite-item .pi-remove { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; padding: 2px; }
+  .section-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .section-row .section-title { margin-bottom: 0; }
+
+  /* ── Share Buttons ── */
+  .tx-share { position: absolute; top: 6px; right: 6px; background: none; border: none; font-size: 13px; cursor: pointer; display: none; padding: 4px; line-height: 1; }
+  .tx-item:hover .tx-share { display: block; }
+  .tx-delete + .tx-share { right: 28px; }
+  @media (pointer: coarse) { .tx-share { display: block; } }
+  .share-summary-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background: #E8F5E9; color: #25D366; border: 1.5px solid #25D366; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 14px; transition: all 0.15s; }
+  .share-summary-btn:active { background: #25D366; color: white; }
+  .share-summary-btn:active svg { fill: white; }
+  .wa-icon { display: inline-block; vertical-align: middle; line-height: 0; }
+  .history-back { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--primary); cursor: pointer; margin-bottom: 10px; background: none; border: none; padding: 4px 0; }
+
+  /* ── Polls ── */
+  .poll-card { background: var(--card); border-radius: 12px; padding: 14px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .poll-card .poll-q { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .poll-card .poll-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .poll-status { padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 10px; }
+  .poll-status.open { background: #E8F5E9; color: #2E7D32; }
+  .poll-status.closed { background: #FFEBEE; color: #C62828; }
+  .poll-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: #F0F0F0; margin-bottom: 6px; }
+  .poll-bar .bar-yes { background: #4CAF50; }
+  .poll-bar .bar-no { background: #F44336; }
+  .poll-bar .bar-maybe { background: #FF9800; }
+  .poll-counts { display: flex; gap: 10px; font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
+  .poll-counts span { font-weight: 600; }
+  .poll-counts .c-yes { color: #2E7D32; }
+  .poll-counts .c-no { color: #C62828; }
+  .poll-counts .c-maybe { color: #E65100; }
+  .poll-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .poll-actions button { padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--card); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .poll-actions button:active { transform: scale(0.96); }
+  .poll-btn-yes { border-color: #4CAF50 !important; color: #2E7D32; }
+  .poll-btn-yes.voted { background: #4CAF50 !important; color: white !important; }
+  .poll-btn-no { border-color: #F44336 !important; color: #C62828; }
+  .poll-btn-no.voted { background: #F44336 !important; color: white !important; }
+  .poll-btn-maybe { border-color: #FF9800 !important; color: #E65100; }
+  .poll-btn-maybe.voted { background: #FF9800 !important; color: white !important; }
+  .poll-btn-share { color: var(--primary) !important; border-color: var(--primary) !important; }
+  .poll-btn-close { color: var(--danger) !important; border-color: var(--danger) !important; font-size: 11px; }
+  .poll-detail-list { margin-top: 8px; padding: 8px 12px; background: var(--bg); border-radius: 8px; max-height: 200px; overflow-y: auto; }
+  .poll-detail-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; border-bottom: 1px solid var(--border); }
+  .poll-detail-item:last-child { border-bottom: none; }
+  .poll-empty { text-align: center; padding: 20px; color: var(--text-secondary); font-size: 13px; }
+  .new-poll-btn { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; padding: 10px; background: var(--primary-light); color: var(--primary); border: 1.5px dashed var(--primary); border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+  .new-poll-btn:active { background: var(--primary); color: white; }
+
+  /* Umpiring Roster */
+  .umpire-card { display: flex; align-items: flex-start; gap: 10px; background: var(--card); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .umpire-card.my-duty { border-left: 3px solid var(--primary); }
+  .umpire-card.past { opacity: 0.6; }
+  .umpire-date { font-size: 11px; font-weight: 700; color: var(--primary); white-space: nowrap; min-width: 72px; padding-top: 2px; }
+  .umpire-details { flex: 1; min-width: 0; }
+  .umpire-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .umpire-venue { font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+  .umpire-assignee { font-size: 12px; color: var(--text); margin-bottom: 4px; }
+  .swap-btn { font-size: 11px; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; margin-right: 4px; margin-top: 4px; }
+  .swap-btn:active { transform: scale(0.96); }
+  .swap-btn.accept { border-color: #4CAF50; color: #2E7D32; }
+  .swap-btn.decline { border-color: #F44336; color: #C62828; }
+  .swap-btn.volunteer { border-color: var(--primary); color: var(--primary); }
+  .stats-table { background: var(--card); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .stats-row { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .stats-row:last-child { border-bottom: none; }
+  .stats-medal { width: 24px; text-align: center; font-size: 16px; }
+  .stats-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .stats-count { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ── Loading Screen ── -->
+<div id="screen-loading" class="screen active">
+  <div class="logo">�</div>
+  <h1>ClubMates</h1>
+  <div class="spinner-lg"></div>
+</div>
+
+<!-- ── Sign In Screen ── -->
+<div id="screen-signin" class="screen">
+  <div class="logo">�</div>
+  <h1>ClubMates</h1>
+  <p>Free expense tracking for any club or team.<br>Track contributions, expenses, sponsorships — together.</p>
+  <button class="google-btn" onclick="signIn()">
+    <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 019.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.998 23.998 0 000 24c0 3.77.9 7.35 2.56 10.53l7.97-5.94z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.94C6.51 42.62 14.62 48 24 48z"/></svg>
+    Sign in with Google
+  </button>
+  <button class="guest-btn" onclick="signInAsGuest()" style="margin-top:14px;background:none;border:1.5px solid rgba(255,255,255,0.5);color:white;border-radius:24px;padding:10px 28px;font-size:13px;font-weight:500;cursor:pointer;opacity:0.85;">
+    👁️ Continue as Guest
+  </button>
+  <p style="font-size:11px;opacity:0.6;margin-top:10px;">Guests can view club finances and vote on polls</p>
+</div>
+
+<!-- ── Club List Screen ── -->
+<div id="screen-clubs" class="screen">
+  <div class="clubs-header">
+    <h1>My Clubs</h1>
+    <p id="userGreeting"></p>
+  </div>
+  <div class="clubs-actions" id="clubsActions">
+    <button onclick="showScreen('create')">+ Create Club</button>
+    <button onclick="toggleJoinSection()">🔗 Join Club</button>
+  </div>
+  <div class="join-section" id="joinSection">
+    <label>Paste invite link or Club ID</label>
+    <div class="join-row">
+      <input type="text" id="joinInput" placeholder="https://... or Club ID" />
+      <button onclick="handleJoinInput()">Join</button>
+    </div>
+  </div>
+  <div class="club-list" id="clubList"></div>
+  <div class="clubs-footer">
+    <button onclick="signOut()">Sign Out</button>
+  </div>
+</div>
+
+<!-- ── Create Club Screen ── -->
+<div id="screen-create" class="screen">
+  <div class="form-header">
+    <button onclick="showScreen('clubs')">←</button>
+    <h2>Create New Club</h2>
+  </div>
+  <div class="form-body">
+    <div class="logo-upload">
+      <div class="logo-preview" id="createLogoPreview" onclick="document.getElementById('createLogoInput').click()">
+        <div class="placeholder">📷<br>Logo</div>
+      </div>
+      <input type="file" id="createLogoInput" accept="image/*" style="display:none" onchange="handleLogoSelect(this,'createLogoPreview','create')" />
+      <div class="logo-upload-hint">Tap to upload club logo (optional)</div>
+    </div>
+    <div class="form-group">
+      <label>Club Name</label>
+      <input type="text" id="createClubName" placeholder="e.g. Weekend Warriors CC" maxlength="60" />
+    </div>
+    <div class="form-group">
+      <label>Currency Symbol</label>
+      <input type="text" id="createClubCurrency" placeholder="₹" value="₹" maxlength="3" style="width:80px;" />
+    </div>
+    <div class="form-group">
+      <div class="toggle-row">
+        <div>
+          <div class="label">Approval Workflow</div>
+          <div class="sublabel">Treasurer must approve member transactions before they count toward the balance</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="createRequireApproval" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    <button class="submit-btn" id="createClubBtn" onclick="createClub()">Create Club</button>
+  </div>
+</div>
+
+<!-- ── Join Confirm Screen ── -->
+<div id="screen-join" class="screen">
+  <div class="club-preview">
+    <div class="icon">🤝</div>
+    <h2 id="joinClubName"></h2>
+    <p>You've been invited to join this club</p>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="showScreen('clubs');loadMyClubs();">Cancel</button>
+      <button class="btn-confirm" id="confirmJoinBtn" onclick="confirmJoin()">Join Club</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main App Screen ── -->
+<div id="screen-app" class="screen">
+  <div class="app-header">
+    <button class="back-btn" onclick="leaveClub()">←</button>
+    <img id="appClubLogo" class="club-logo hidden" src="" alt="" />
+    <h1 id="appClubName"></h1>
+    <div class="user-avatar" id="appUserAvatar" onclick="openMenu()"></div>
+  </div>
+  <div id="guestBanner" class="view-as-banner hidden" style="background:#E3F2FD;color:#1565C0;">
+    <span>👁️ <span id="guestBannerName">Guest</span> — read only</span>
+    <button onclick="upgradeFromGuest()" style="background:#1565C0;">Sign In</button>
+  </div>
+
+  <!-- Tab: Dashboard -->
+  <div id="tab-dashboard" class="tab-content active">
+    <div id="balanceCard" class="balance-card">
+      <div class="label">Approved Balance</div>
+      <div class="amount" id="dashBalance">₹0</div>
+      <div class="sub" id="dashBalanceSub"></div>
+    </div>
+    <div id="pendingCard" class="pending-card hidden">
+      <div class="icon">⏳</div>
+      <div class="info">
+        <div class="amount" id="dashPending">₹0</div>
+        <div class="label" id="dashPendingLabel">pending approval</div>
+      </div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-item contribution"><div class="val" id="dashContributions">₹0</div><div class="lbl">Contributions</div></div>
+      <div class="summary-item sponsorship"><div class="val" id="dashSponsorships">₹0</div><div class="lbl">Sponsorships</div></div>
+      <div class="summary-item expense"><div class="val" id="dashExpense">₹0</div><div class="lbl">Expenses</div></div>
+    </div>
+    <button class="share-summary-btn" onclick="shareSummaryToWhatsApp()"><span class="wa-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span> Share Summary on WhatsApp</button>
+    <div class="section-row">
+      <div class="section-title">Recent Transactions</div>
+      <a href="#" class="export-link" onclick="showTab('history');return false;">See All ›</a>
+    </div>
+    <div class="tx-list" id="dashRecentTx"></div>
+  </div>
+
+  <!-- Tab: Record -->
+  <div id="tab-record" class="tab-content">
+    <div class="section-title">New Transaction</div>
+    <div class="type-selector">
+      <button class="type-btn active" data-type="contribution" onclick="selectType(this)">
+        <span class="emoji">💰</span> Contribution
+      </button>
+      <button class="type-btn" data-type="expense" onclick="selectType(this)">
+        <span class="emoji">🧾</span> Expense
+      </button>
+      <button class="type-btn" data-type="sponsorship" onclick="selectType(this)">
+        <span class="emoji">🤝</span> Sponsorship
+      </button>
+    </div>
+    <div class="form-group" id="recordForGroup" style="display:none;">
+      <label>Record For</label>
+      <select id="recordForMember"></select>
+    </div>
+    <div class="form-group">
+      <label>Amount</label>
+      <input type="number" id="txAmount" placeholder="0.00" min="0" step="0.01" inputmode="decimal" />
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <input type="text" id="txDescription" placeholder="What is this for?" maxlength="100" />
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="txCategory"></select>
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="txDate" />
+    </div>
+    <button class="submit-btn" id="submitTxBtn" onclick="submitTransaction()">Add Transaction</button>
+  </div>
+
+  <!-- Tab: History (accessible via See All / menu) -->
+  <div id="tab-history" class="tab-content">
+    <button class="history-back" onclick="showTab('dashboard')">← Back to Dashboard</button>
+    <div class="search-box">
+      <input type="text" id="historySearch" placeholder="Search transactions..." oninput="renderHistory()" />
+    </div>
+    <div class="filter-row" id="historyFilters">
+      <button class="chip active" data-filter="all" onclick="setHistoryFilter(this)">All</button>
+      <button class="chip" data-filter="pending" onclick="setHistoryFilter(this)" id="chipPending">⏳ Pending <span class="badge" id="pendingBadge">0</span></button>
+      <button class="chip" data-filter="contribution" onclick="setHistoryFilter(this)">💰</button>
+      <button class="chip" data-filter="expense" onclick="setHistoryFilter(this)">🧾</button>
+      <button class="chip" data-filter="sponsorship" onclick="setHistoryFilter(this)">🤝</button>
+    </div>
+    <div class="history-toolbar">
+      <a href="#" class="export-link" onclick="exportExcel();return false;">📥 Export</a>
+      <select class="sort-select" id="historySortSelect" onchange="setHistorySort(this.value)">
+        <option value="date-desc">Date ↓ (Newest)</option>
+        <option value="date-asc">Date ↑ (Oldest)</option>
+        <option value="amount-desc">Amount ↓ (Highest)</option>
+        <option value="amount-asc">Amount ↑ (Lowest)</option>
+        <option value="member-asc">Member A→Z</option>
+        <option value="member-desc">Member Z→A</option>
+        <option value="category-asc">Category A→Z</option>
+      </select>
+      <button class="select-toggle" id="selectToggleBtn" onclick="toggleSelectMode()" style="display:none;">☐ Select</button>
+    </div>
+    <div class="tx-list" id="historyTxList"></div>
+    <div class="bulk-bar" id="bulkBar" style="display:none;">
+      <span class="bulk-count" id="bulkCount">0 selected</span>
+      <button class="bulk-selall" onclick="selectAllTx()">All</button>
+      <button class="bulk-deselect" onclick="deselectAllTx()">None</button>
+      <button class="bulk-delete" onclick="deleteSelectedTx()">🗑 Delete</button>
+    </div>
+  </div>
+
+  <!-- Tab: Members -->
+  <div id="tab-members" class="tab-content">
+    <!-- Quick Access: Invite & Club ID -->
+    <div class="members-quick-bar" style="display:flex;gap:8px;margin-bottom:14px;">
+      <button onclick="copyInviteLink()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:var(--primary);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">🔗 Copy Invite Link</button>
+      <button onclick="copyClubId()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:#F5F5F5;color:var(--text);border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">🆔 Copy Club ID</button>
+    </div>
+    <div class="section-title" style="margin-bottom:12px;">Members</div>
+    <div id="membersList" style="padding:0 0 12px;"></div>
+    <div id="addMemberSection" style="display:none;">
+      <div class="add-member-form">
+        <input type="email" id="addMemberEmail" placeholder="member@gmail.com" />
+        <button onclick="addMemberByEmail()">✉️ Invite</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button onclick="openAddPlaceholderModal()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:#E8F5E9;color:var(--primary);border:1.5px solid var(--primary);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">👤+ Add Member Manually</button>
+      </div>
+      <div id="pendingInvitesList"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Polls -->
+  <div id="tab-polls" class="tab-content">
+    <!-- Sub-tabs: Polls | Umpiring -->
+    <div class="polls-subtabs" style="display:flex;border-bottom:2px solid var(--border);margin-bottom:14px;">
+      <button class="polls-subtab active" onclick="switchPollsSubtab('availability')" id="subtabAvailability" style="flex:1;padding:10px 0;font-size:14px;font-weight:600;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;color:var(--text-secondary);">🗳️ Polls</button>
+      <button class="polls-subtab" onclick="switchPollsSubtab('umpiring')" id="subtabUmpiring" style="flex:1;padding:10px 0;font-size:14px;font-weight:600;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;color:var(--text-secondary);">🏏 Umpiring</button>
+    </div>
+
+    <!-- Sub-panel: Availability Polls -->
+    <div id="pollsSubpanel" class="polls-subpanel">
+      <div id="createPollSection" style="display:none;">
+        <button class="new-poll-btn" onclick="openCreatePollModal()">📊 Create New Poll</button>
+      </div>
+      <div id="pollsList"></div>
+    </div>
+
+    <!-- Sub-panel: Umpiring Roster -->
+    <div id="umpiringSubpanel" class="polls-subpanel" style="display:none;">
+      <div id="createUmpireSection" style="display:none;">
+        <button class="new-poll-btn" onclick="openCreateUmpireModal()" style="background:#E8F5E9;color:var(--primary);border:1.5px solid var(--primary);">🏏 Assign Umpire</button>
+      </div>
+
+      <div class="filter-row" style="margin-bottom:12px;">
+        <button class="chip active" data-ufilter="upcoming" onclick="setUmpireFilter(this)">📅 Upcoming</button>
+        <button class="chip" data-ufilter="my" onclick="setUmpireFilter(this)">👤 My Duties</button>
+        <button class="chip" data-ufilter="past" onclick="setUmpireFilter(this)">📜 Past</button>
+        <button class="chip" data-ufilter="stats" onclick="setUmpireFilter(this)">📊 Stats</button>
+      </div>
+
+      <div id="umpireList"></div>
+      <div id="umpireStats" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" onclick="showTab('dashboard')"><span class="ni-icon">📊</span>Dashboard</button>
+    <button class="nav-item" id="navRecord" onclick="showTab('record')"><span class="ni-icon">➕</span>Record</button>
+    <button class="nav-item" onclick="showTab('polls')"><span class="ni-icon">🗳️</span>Polls</button>
+    <button class="nav-item" onclick="showTab('members')"><span class="ni-icon">👥</span>Members</button>
+  </nav>
+</div>
+
+<!-- ── Side Menu Panel ── -->
+<div id="menuOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+<div id="menuPanel" class="menu-panel">
+  <div class="menu-panel-header">
+    <button class="mp-close" onclick="closeMenu()">✕</button>
+    <div class="mp-name" id="menuUserName"></div>
+    <div class="mp-email" id="menuUserEmail"></div>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-item" onclick="copyClubId();closeMenu();">
+      <span class="menu-icon">🆔</span> Club ID: <span id="clubIdDisplay" style="font-family:monospace;font-size:11px;color:#888;margin-left:4px;"></span>
+    </div>
+    <div class="menu-item" onclick="copyInviteLink();closeMenu();">
+      <span class="menu-icon">🔗</span> Copy Invite Link
+    </div>
+  </div>
+
+  <div class="menu-group" id="menuSettingsGroup" style="display:none;">
+    <div class="menu-group-label">Admin</div>
+    <div class="menu-item" onclick="openSettingsModal();closeMenu();">
+      <span class="menu-icon">⚙️</span> Club Settings
+    </div>
+    <div class="menu-item" id="menuImportItem" onclick="openImportModal();closeMenu();" style="display:none;">
+      <span class="menu-icon">📥</span> Import from V1
+    </div>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-group-label">Export</div>
+    <div class="menu-item" onclick="exportExcel();closeMenu();">
+      <span class="menu-icon">📊</span> Export to Excel
+    </div>
+    <div class="menu-item" onclick="exportJSON();closeMenu();">
+      <span class="menu-icon">📤</span> Export JSON Backup
+    </div>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-item" onclick="showTab('history');closeMenu();">
+      <span class="menu-icon">📋</span> Transaction History
+    </div>
+    <div class="menu-item" onclick="leaveClub();closeMenu();">
+      <span class="menu-icon">↩️</span> Back to My Clubs
+    </div>
+    <div class="menu-item danger" onclick="leaveThisClub();closeMenu();">
+      <span class="menu-icon">🚪</span> Leave Club
+    </div>
+    <div class="menu-item" onclick="signOut();closeMenu();">
+      <span class="menu-icon">🔒</span> Sign Out
+    </div>
+  </div>
+</div>
+
+<!-- ── Import V1 Modal ── -->
+<div id="importModal" class="modal-overlay" onclick="if(event.target===this)closeImportModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>📥 Import from V1</h2>
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;">Import transactions from your V1 Google Sheets app into this club.</p>
+    <div class="form-group">
+      <label>V1 Apps Script URL</label>
+      <input type="url" id="importV1Url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:11px;" />
+      <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">Paste the same URL used in your V1 app settings</div>
+    </div>
+    <div id="importPreview" style="display:none;">
+      <div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Preview</div>
+        <div id="importPreviewStats" style="font-size:12px;color:var(--text-secondary);"></div>
+      </div>
+    </div>
+    <div id="importProgress" style="display:none;margin-bottom:16px;">
+      <div style="background:var(--border);border-radius:6px;height:8px;overflow:hidden;">
+        <div id="importProgressBar" style="background:var(--primary);height:100%;width:0%;transition:width 0.3s;"></div>
+      </div>
+      <div id="importProgressText" style="font-size:11px;color:var(--text-secondary);margin-top:4px;text-align:center;"></div>
+    </div>
+    <button class="submit-btn" id="importFetchBtn" onclick="fetchV1Data()" style="margin-bottom:8px;">Fetch V1 Data</button>
+    <button class="submit-btn" id="importRunBtn" onclick="runV1Import()" style="margin-bottom:8px;display:none;">Import All Transactions</button>
+    <button class="submit-btn" onclick="closeImportModal()" style="background:#F5F5F5;color:var(--text);">Cancel</button>
+  </div>
+</div>
+
+<!-- ── Settings Modal ── -->
+<div id="settingsModal" class="modal-overlay" onclick="if(event.target===this)closeSettingsModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>⚙️ Club Settings</h2>
+    <div class="logo-upload">
+      <div class="logo-preview" id="settingsLogoPreview" onclick="document.getElementById('settingsLogoInput').click()">
+        <div class="placeholder">📷<br>Logo</div>
+      </div>
+      <input type="file" id="settingsLogoInput" accept="image/*" style="display:none" onchange="handleLogoSelect(this,'settingsLogoPreview','settings')" />
+      <div class="logo-upload-hint">Tap to change club logo</div>
+    </div>
+    <div class="form-group">
+      <label>Club Name</label>
+      <input type="text" id="settingsClubName" maxlength="60" />
+    </div>
+    <div class="form-group">
+      <label>Currency Symbol</label>
+      <input type="text" id="settingsCurrency" maxlength="3" style="width:80px;" />
+    </div>
+    <div class="form-group">
+      <div class="toggle-row">
+        <div>
+          <div class="label">Approval Workflow</div>
+          <div class="sublabel">Require treasurer approval for member transactions</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="settingsApproval" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Guest Access</label>
+      <div class="sublabel" style="margin-bottom:6px;">Allow non-members to view club finances</div>
+      <select id="settingsGuestAccess" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;">
+        <option value="disabled">Disabled — members only</option>
+        <option value="open">Open — anyone with Club ID can view</option>
+        <option value="pin">PIN protected — require a PIN to view</option>
+      </select>
+    </div>
+    <div class="form-group" id="guestPinGroup" style="display:none;">
+      <label>Guest PIN</label>
+      <input type="text" id="settingsGuestPin" maxlength="8" placeholder="e.g. 1234" style="width:120px;" />
+    </div>
+    <button class="submit-btn" onclick="saveClubSettings()" style="margin-bottom:12px;">Save Settings</button>
+    <button class="submit-btn" onclick="closeSettingsModal()" style="background:#F5F5F5;color:var(--text);">Cancel</button>
+  </div>
+</div>
+
+<!-- ── Create Poll Modal ── -->
+<div id="createPollModal" class="modal-overlay" onclick="if(event.target===this)closeCreatePollModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>📊 New Availability Poll</h2>
+    <div class="form-group">
+      <label>Question</label>
+      <input type="text" id="pollQuestion" placeholder="e.g. Are you available for the match?" maxlength="120" />
+    </div>
+    <div class="form-group">
+      <label>Match Date</label>
+      <input type="date" id="pollMatchDate" />
+    </div>
+    <div class="form-group">
+      <label>Opponent (optional)</label>
+      <input type="text" id="pollOpponent" placeholder="e.g. Chennai Tigers" maxlength="60" />
+    </div>
+    <div class="form-group">
+      <label>Location (optional)</label>
+      <input type="text" id="pollLocation" placeholder="e.g. YMCA Ground, Nandambakkam" maxlength="100" />
+    </div>
+    <button class="submit-btn" id="createPollBtn" onclick="createPoll()" style="margin-bottom:8px;">Create & Share</button>
+    <button class="submit-btn" onclick="closeCreatePollModal()" style="background:#F5F5F5;color:var(--text);">Cancel</button>
+  </div>
+</div>
+
+<!-- ── Add Placeholder Member Modal ── -->
+<div id="addPlaceholderModal" class="modal-overlay" onclick="if(event.target===this)closeAddPlaceholderModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>👤 Add Member Manually</h2>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Add a member who hasn't signed up yet. They can claim their account later by signing in with the matching email.</p>
+    <div class="form-group">
+      <label>Name *</label>
+      <input type="text" id="phMemberName" placeholder="e.g. Ravi Kumar" maxlength="60" />
+    </div>
+    <div class="form-group">
+      <label>Email (optional)</label>
+      <input type="email" id="phMemberEmail" placeholder="e.g. ravi@gmail.com" />
+    </div>
+    <button class="submit-btn" id="addPhBtn" onclick="addPlaceholderMember()" style="margin-bottom:8px;">Add Member</button>
+    <button class="submit-btn" onclick="closeAddPlaceholderModal()" style="background:#F5F5F5;color:var(--text);">Cancel</button>
+  </div>
+</div>
+
+<!-- ── Create Umpire Assignment Modal ── -->
+<div id="createUmpireModal" class="modal-overlay" onclick="if(event.target===this)closeCreateUmpireModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>🏏 Assign Umpire</h2>
+    <div class="form-group">
+      <label>Match Title *</label>
+      <input type="text" id="umpireMatchTitle" placeholder="e.g. vs Chennai Tigers" maxlength="80" />
+    </div>
+    <div class="form-group">
+      <label>Match Date *</label>
+      <input type="date" id="umpireMatchDate" />
+    </div>
+    <div class="form-group">
+      <label>Venue</label>
+      <input type="text" id="umpireVenue" placeholder="e.g. YMCA Ground" maxlength="100" />
+    </div>
+    <div class="form-group">
+      <label>Assign To</label>
+      <select id="umpireAssignTo"></select>
+    </div>
+    <div class="form-group">
+      <label>Assignment Method</label>
+      <select id="umpireMethod">
+        <option value="manual">Manual pick</option>
+        <option value="dice">🎲 Dice roll (random from lowest-count)</option>
+      </select>
+    </div>
+    <div id="diceResult" style="display:none;text-align:center;padding:16px;">
+      <div style="font-size:40px;" id="diceEmoji">🎲</div>
+      <div style="font-size:14px;font-weight:600;margin-top:8px;" id="diceResultName"></div>
+    </div>
+    <button class="submit-btn" id="createUmpireBtn" onclick="createUmpireAssignment()" style="margin-bottom:8px;">Assign</button>
+    <button class="submit-btn" onclick="closeCreateUmpireModal()" style="background:#F5F5F5;color:var(--text);">Cancel</button>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div id="toast" class="toast"></div>
+
+<!-- ── Firebase SDK (compat — no bundler needed) ── -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // ═══════════════════════════════════════════════════════════
+  // ── Firebase Config ──
+  // ═══════════════════════════════════════════════════════════
+  const firebaseConfig = {
+    apiKey: "AIzaSyBSu_h8iKIHZEkY5XLtoiEhWpcQY81ucAg",
+    authDomain: "club-expense-tracking.firebaseapp.com",
+    projectId: "club-expense-tracking",
+    storageBucket: "club-expense-tracking.firebasestorage.app",
+    messagingSenderId: "281245643064",
+    appId: "1:281245643064:web:6677ac96778cebb26151cd",
+    measurementId: "G-KCN82WDWLE"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // Enable offline persistence
+  db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
+    console.warn('Persistence not available:', err.code);
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ── State ──
+  // ═══════════════════════════════════════════════════════════
+  var currentUser = null;
+  var currentClub = null; // { id, name, currency, requireApproval, categories, ... }
+  var transactions = [];
+  var members = [];
+  var myRole = null; // 'owner', 'treasurer', 'member'
+  var unsubs = []; // Firestore snapshot unsubscribers
+  var currentHistoryFilter = 'all';
+  var currentHistorySort = 'date-desc';
+  var pendingJoinClubId = null;
+  var pendingLogoBase64 = null;
+
+  var polls = []; // availability polls
+  var umpireAssignments = []; // umpiring assignments
+  var currentUmpireFilter = 'upcoming'; // upcoming, my, past, stats
+  var pendingPollNav = false; // true when navigating from a poll link
+  var pendingVote = null; // { pollId, vote } for deep-link voting
+
+  var DEFAULT_CATEGORIES = [
+    'Ground Fees', 'Equipment', 'Jerseys', 'Travel', 'Food & Drinks',
+    'Tournament Entry', 'Umpire Fees', 'Awards & Trophies',
+    'Monthly Dues', 'Match Day Collection', 'Sponsor Payment', 'Miscellaneous'
+  ];
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Auth ──
+  // ═══════════════════════════════════════════════════════════
+  auth.onAuthStateChanged(function(user) {
+    currentUser = user;
+    if (user) {
+      // For anonymous (guest) users, skip invites — go straight to guest club entry
+      var initPromise = user.isAnonymous ? Promise.resolve() : checkPendingInvites(user);
+      initPromise.then(function() {
+        var params = new URLSearchParams(window.location.search);
+        // Check for pending join from URL
+        var joinId = params.get('join');
+        if (!joinId) joinId = sessionStorage.getItem('pendingJoin');
+        sessionStorage.removeItem('pendingJoin');
+
+        // Check for poll link
+        var pollId = params.get('poll');
+        var pollClubId = params.get('club');
+        var voteParam = params.get('vote');
+        if (!pollId) pollId = sessionStorage.getItem('pendingPoll');
+        if (!pollClubId) pollClubId = sessionStorage.getItem('pendingPollClub');
+        if (!voteParam) voteParam = sessionStorage.getItem('pendingVote');
+        sessionStorage.removeItem('pendingPoll');
+        sessionStorage.removeItem('pendingPollClub');
+        sessionStorage.removeItem('pendingVote');
+
+        // Clean URL
+        if (params.has('join') || params.has('poll')) {
+          history.replaceState(null, '', window.location.pathname);
+        }
+
+        if (pollId && pollClubId) {
+          // Poll link: enter the club and navigate to polls
+          pendingPollNav = true;
+          if (voteParam && ['yes','no','maybe'].indexOf(voteParam) >= 0) {
+            pendingVote = { pollId: pollId, vote: voteParam };
+          }
+          if (user.isAnonymous) {
+            enterClubAsGuest(pollClubId);
+          } else {
+            handleJoinClub(pollClubId);
+          }
+        } else if (joinId) {
+          history.replaceState(null, '', window.location.pathname);
+          if (user.isAnonymous) {
+            enterClubAsGuest(joinId);
+          } else {
+            handleJoinClub(joinId);
+          }
+        } else {
+          showScreen('clubs');
+          loadMyClubs();
+        }
+      });
+    } else {
+      // Check if there's a join/poll param to save for after sign-in
+      var params = new URLSearchParams(window.location.search);
+      var joinId = params.get('join');
+      var pollId = params.get('poll');
+      var pollClubId = params.get('club');
+      if (joinId) sessionStorage.setItem('pendingJoin', joinId);
+      if (pollId) sessionStorage.setItem('pendingPoll', pollId);
+      if (pollClubId) sessionStorage.setItem('pendingPollClub', pollClubId);
+      var voteP = params.get('vote');
+      if (voteP) sessionStorage.setItem('pendingVote', voteP);
+      showScreen('signin');
+    }
+  });
+
+  function signIn() {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    var btn = document.querySelector('.google-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="border-color:rgba(0,0,0,0.15);border-top-color:#333;"></span> Signing in...';
+
+    auth.signInWithPopup(provider).catch(function(err) {
+      console.error('Sign-in error:', err.code, err.message);
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 019.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.998 23.998 0 000 24c0 3.77.9 7.35 2.56 10.53l7.97-5.94z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.94C6.51 42.62 14.62 48 24 48z"/></svg> Sign in with Google';
+      if (err.code === 'auth/popup-closed-by-user') {
+        showToast('Sign-in cancelled', 'error');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        showToast('Add "localhost" to Firebase → Auth → Authorized domains', 'error');
+      } else if (err.code === 'auth/operation-not-supported-in-this-environment') {
+        showToast('Open via http://localhost:3456 — not file://', 'error');
+      } else {
+        showToast('Sign-in failed: ' + err.message, 'error');
+      }
+    });
+  }
+
+  function signInAsGuest() {
+    var name = prompt('Enter your name (so others can identify you):');
+    if (!name || !name.trim()) {
+      showToast('A name is required for guest access', 'error');
+      return;
+    }
+    name = name.trim();
+    auth.signInAnonymously().then(function(cred) {
+      return cred.user.updateProfile({ displayName: name });
+    }).catch(function(err) {
+      console.error('Guest sign-in error:', err);
+      showToast('Guest sign-in failed: ' + err.message, 'error');
+    });
+  }
+
+  function isGuest() {
+    return currentUser && currentUser.isAnonymous;
+  }
+
+  function signOut() {
+    auth.signOut().then(function() {
+      currentUser = null;
+      currentClub = null;
+      transactions = [];
+      members = [];
+      unsubs.forEach(function(u) { u(); });
+      unsubs = [];
+      showScreen('signin');
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Club Management ──
+  // ═══════════════════════════════════════════════════════════
+  function loadMyClubs() {
+    if (isGuest()) {
+      document.getElementById('userGreeting').textContent = 'Browsing as Guest';
+      document.getElementById('clubsActions').style.display = 'none';
+      // Hide create/join buttons for guests, show a prompt to enter a club ID
+      document.getElementById('clubList').innerHTML =
+        '<div class="empty-state">' +
+        '  <div class="icon">👁️</div>' +
+        '  <h3>Guest Mode</h3>' +
+        '  <p>Enter a Club ID or use an invite link to view a club\'s finances.</p>' +
+        '  <div style="padding:12px 0;">' +
+        '    <input type="text" id="guestClubId" placeholder="Paste Club ID here" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;box-sizing:border-box;" />' +
+        '    <button onclick="guestEnterClub()" style="width:100%;margin-top:10px;padding:10px;background:var(--primary);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">View Club</button>' +
+        '  </div>' +
+        '  <p style="font-size:12px;color:var(--text-secondary);margin-top:8px;">Want full access? <a href="#" onclick="upgradeFromGuest();return false;" style="color:var(--primary);font-weight:600;">Sign in with Google</a></p>' +
+        '</div>';
+      return;
+    }
+    document.getElementById('clubsActions').style.display = '';
+    document.getElementById('userGreeting').textContent = 'Hi, ' + (currentUser.displayName || currentUser.email);
+    var listEl = document.getElementById('clubList');
+    listEl.innerHTML = '<div class="text-center" style="padding:40px;color:var(--text-secondary);">Loading...</div>';
+
+    db.collection('users').doc(currentUser.uid).collection('clubs')
+      .get().then(function(snap) {
+        if (snap.empty) {
+          listEl.innerHTML = '<div class="empty-state"><div class="icon">🏟️</div><h3>No clubs yet</h3><p>Create a new club or join one with an invite link</p></div>';
+          return;
+        }
+        var html = '';
+        snap.docs.forEach(function(doc) {
+          var c = doc.data();
+          var initial = (c.clubName || '?').charAt(0).toUpperCase();
+          var roleClass = 'role-' + (c.role || 'member');
+          var avatarContent = c.logoBase64
+            ? '<img src="' + c.logoBase64 + '" alt="">'
+            : initial;
+          html += '<div class="club-card" onclick="enterClub(\'' + doc.id + '\')">';
+          html += '  <div class="club-avatar">' + avatarContent + '</div>';
+          html += '  <div class="club-info"><h3>' + escHtml(c.clubName || 'Unnamed') + '</h3>';
+          html += '    <span>' + (c.role || 'member') + '</span></div>';
+          html += '  <span class="role-badge ' + roleClass + '">' + (c.role || 'member') + '</span>';
+          html += '</div>';
+        });
+        listEl.innerHTML = html;
+      }).catch(function(err) {
+        listEl.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>Error loading clubs</h3><p>' + escHtml(err.message) + '</p></div>';
+      });
+  }
+
+  function createClub() {
+    var name = document.getElementById('createClubName').value.trim();
+    if (!name) { showToast('Enter a club name', 'error'); return; }
+    var currency = document.getElementById('createClubCurrency').value.trim() || '₹';
+    var requireApproval = document.getElementById('createRequireApproval').checked;
+
+    var btn = document.getElementById('createClubBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Creating...';
+
+    var batch = db.batch();
+    var clubRef = db.collection('clubs').doc();
+    var memberRef = clubRef.collection('members').doc(currentUser.uid);
+    var userClubRef = db.collection('users').doc(currentUser.uid).collection('clubs').doc(clubRef.id);
+
+    batch.set(clubRef, {
+      name: name,
+      currency: currency,
+      requireApproval: requireApproval,
+      categories: DEFAULT_CATEGORIES,
+      logoBase64: pendingLogoBase64 || null,
+      createdBy: currentUser.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    batch.set(memberRef, {
+      uid: currentUser.uid,
+      name: currentUser.displayName || currentUser.email,
+      email: currentUser.email,
+      role: 'owner',
+      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    batch.set(userClubRef, {
+      clubName: name,
+      role: 'owner',
+      logoBase64: pendingLogoBase64 || null,
+      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    batch.commit().then(function() {
+      btn.disabled = false;
+      btn.textContent = 'Create Club';
+      pendingLogoBase64 = null;
+      document.getElementById('createLogoPreview').innerHTML = '<div class="placeholder">📷<br>Logo</div>';
+      document.getElementById('createClubName').value = '';
+      showToast('Club created!', 'success');
+      enterClub(clubRef.id);
+    }).catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'Create Club';
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  // ── Join Flow ──
+  function toggleJoinSection() {
+    document.getElementById('joinSection').classList.toggle('show');
+    document.getElementById('joinInput').focus();
+  }
+
+  function handleJoinInput() {
+    var val = document.getElementById('joinInput').value.trim();
+    if (!val) { showToast('Paste an invite link or Club ID', 'error'); return; }
+    // Extract club ID from URL if needed
+    var clubId = val;
+    try {
+      var url = new URL(val);
+      clubId = url.searchParams.get('join') || val;
+    } catch(e) { /* not a URL, use as-is */ }
+    handleJoinClub(clubId);
+  }
+
+  function handleJoinClub(clubId) {
+    pendingJoinClubId = clubId;
+    // Check if club exists
+    db.collection('clubs').doc(clubId).get().then(function(doc) {
+      if (!doc.exists) {
+        showToast('Club not found. Check the invite link.', 'error');
+        showScreen('clubs');
+        loadMyClubs();
+        return;
+      }
+      // Check if already a member using own user doc (avoids permission issue)
+      return db.collection('users').doc(currentUser.uid).collection('clubs').doc(clubId).get().then(function(userClubDoc) {
+        if (userClubDoc.exists) {
+          showToast('You\'re already a member!', 'success');
+          enterClub(clubId);
+          return;
+        }
+        // Show join confirmation
+        var joinData = doc.data();
+        var joinLogo = joinData.logoBase64;
+        document.querySelector('#screen-join .icon').innerHTML = joinLogo ? '<img src="' + joinLogo + '" style="width:48px;height:48px;border-radius:12px;object-fit:cover;" alt="">' : '🤝';
+        document.getElementById('joinClubName').textContent = joinData.name || 'Unnamed Club';
+        showScreen('join');
+      });
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+      showScreen('clubs');
+      loadMyClubs();
+    });
+  }
+
+  function confirmJoin() {
+    var clubId = pendingJoinClubId;
+    if (!clubId) return;
+    var btn = document.getElementById('confirmJoinBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Joining...';
+
+    // Get club name first
+    db.collection('clubs').doc(clubId).get().then(function(clubDoc) {
+      var clubData = clubDoc.data();
+      var clubName = clubData.name || 'Unnamed';
+      var clubLogo = clubData.logoBase64 || null;
+      var batch = db.batch();
+      var memberRef = db.collection('clubs').doc(clubId).collection('members').doc(currentUser.uid);
+      var userClubRef = db.collection('users').doc(currentUser.uid).collection('clubs').doc(clubId);
+
+      batch.set(memberRef, {
+        uid: currentUser.uid,
+        name: currentUser.displayName || currentUser.email,
+        email: currentUser.email,
+        role: 'member',
+        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      batch.set(userClubRef, {
+        clubName: clubName,
+        role: 'member',
+        logoBase64: clubLogo,
+        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      return batch.commit();
+    }).then(function() {
+      btn.disabled = false;
+      btn.textContent = 'Join Club';
+      showToast('Welcome to the club!', 'success');
+      enterClub(clubId);
+    }).catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'Join Club';
+      showToast('Error joining: ' + err.message, 'error');
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Enter Club (subscribe to real-time data) ──
+  // ═══════════════════════════════════════════════════════════
+  function enterClub(clubId) {
+    // Unsubscribe previous listeners
+    unsubs.forEach(function(u) { u(); });
+    unsubs = [];
+    transactions = [];
+    members = [];
+
+    // Verify membership
+    db.collection('clubs').doc(clubId).collection('members').doc(currentUser.uid).get()
+      .then(function(memberDoc) {
+        if (!memberDoc.exists) {
+          // Stale reference — clean up
+          db.collection('users').doc(currentUser.uid).collection('clubs').doc(clubId).delete();
+          showToast('You are no longer a member of this club', 'error');
+          showScreen('clubs');
+          loadMyClubs();
+          return;
+        }
+        myRole = memberDoc.data().role;
+
+        // Subscribe to club settings
+        unsubs.push(
+          db.collection('clubs').doc(clubId).onSnapshot(function(snap) {
+            if (snap.exists) {
+              currentClub = { id: clubId, ...snap.data() };
+              renderAppHeader();
+              renderDashboard();
+              renderHistory();
+              updateRoleVisibility();
+            }
+          })
+        );
+
+        // Subscribe to transactions
+        unsubs.push(
+          db.collection('clubs').doc(clubId).collection('transactions')
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(function(snap) {
+              transactions = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
+              renderDashboard();
+              renderHistory();
+            })
+        );
+
+        // Subscribe to members
+        unsubs.push(
+          db.collection('clubs').doc(clubId).collection('members')
+            .onSnapshot(function(snap) {
+              members = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
+              renderMembers();
+              renderPolls();
+              populateRecordForm();
+            })
+        );
+
+        // Subscribe to polls
+        unsubs.push(
+          db.collection('clubs').doc(clubId).collection('polls')
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(function(snap) {
+              polls = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
+              renderPolls();
+            })
+        );
+
+        // Subscribe to umpire assignments
+        unsubs.push(
+          db.collection('clubs').doc(clubId).collection('umpireAssignments')
+            .orderBy('matchDate', 'desc')
+            .onSnapshot(function(snap) {
+              umpireAssignments = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
+              renderUmpiring();
+            })
+        );
+
+        showScreen('app');
+        if (pendingPollNav) {
+          var voteToCast = pendingVote;
+          pendingPollNav = false;
+          pendingVote = null;
+          showTab('polls');
+          // If deep-link vote, auto-submit after a short delay for Firestore to sync
+          if (voteToCast) {
+            setTimeout(function() {
+              respondToPoll(voteToCast.pollId, voteToCast.vote);
+            }, 1500);
+          }
+        } else {
+          showTab('dashboard');
+        }
+        populateRecordForm();
+      }).catch(function(err) {
+        showToast('Error: ' + err.message, 'error');
+        showScreen('clubs');
+        loadMyClubs();
+      });
+  }
+
+  function leaveClub() {
+    unsubs.forEach(function(u) { u(); });
+    unsubs = [];
+    currentClub = null;
+    transactions = [];
+    members = [];
+    polls = [];
+    umpireAssignments = [];
+    myRole = null;
+    showScreen('clubs');
+    loadMyClubs();
+  }
+
+  // ── Guest Club Entry ──
+  function guestEnterClub() {
+    var input = document.getElementById('guestClubId');
+    var clubId = (input ? input.value : '').trim();
+    if (!clubId) {
+      showToast('Enter a Club ID', 'error');
+      return;
+    }
+    enterClubAsGuest(clubId);
+  }
+
+  function enterClubAsGuest(clubId) {
+    // Check if club exists and allows guest access
+    db.collection('clubs').doc(clubId).get().then(function(clubDoc) {
+      if (!clubDoc.exists) {
+        showToast('Club not found. Check the Club ID.', 'error');
+        return;
+      }
+      var clubData = clubDoc.data();
+      var guestAccess = clubData.guestAccess || 'disabled';
+
+      if (guestAccess === 'disabled') {
+        showToast('This club does not allow guest access. Sign in to join.', 'error');
+        return;
+      }
+
+      if (guestAccess === 'pin') {
+        var pin = prompt('Enter the club PIN to view:');
+        if (!pin || pin !== clubData.guestPin) {
+          showToast('Incorrect PIN', 'error');
+          return;
+        }
+      }
+
+      // Guest access granted — set up read-only view
+      unsubs.forEach(function(u) { u(); });
+      unsubs = [];
+      transactions = [];
+      members = [];
+      polls = [];
+      myRole = 'guest';
+
+      // Subscribe to club settings
+      unsubs.push(
+        db.collection('clubs').doc(clubId).onSnapshot(function(snap) {
+          if (snap.exists) {
+            currentClub = { id: clubId, ...snap.data() };
+            renderAppHeader();
+            renderDashboard();
+            renderHistory();
+            updateRoleVisibility();
+          }
+        })
+      );
+
+      // Subscribe to transactions (read-only)
+      unsubs.push(
+        db.collection('clubs').doc(clubId).collection('transactions')
+          .orderBy('createdAt', 'desc')
+          .onSnapshot(function(snap) {
+            transactions = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
+            renderDashboard();
+            renderHistory();
+          })
+      );
+
+      // Subscribe to members (read-only)
+      unsubs.push(
+        db.collection('clubs').doc(clubId).collection('members')
+          .onSnapshot(function(snap) {
+            members = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
+            renderMembers();
+            renderPolls();
+          })
+      );
+
+      // Subscribe to polls (can vote)
+      unsubs.push(
+        db.collection('clubs').doc(clubId).collection('polls')
+          .orderBy('createdAt', 'desc')
+          .onSnapshot(function(snap) {
+            polls = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
+            renderPolls();
+          })
+      );
+
+      showScreen('app');
+      if (pendingPollNav) {
+        var voteToCast = pendingVote;
+        pendingPollNav = false;
+        pendingVote = null;
+        showTab('polls');
+        if (voteToCast) {
+          setTimeout(function() {
+            respondToPoll(voteToCast.pollId, voteToCast.vote);
+          }, 1500);
+        }
+      } else {
+        showTab('dashboard');
+      }
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function upgradeFromGuest() {
+    // Sign out anonymous, then sign in with Google
+    auth.signOut().then(function() {
+      // The onAuthStateChanged will show the signin screen, then they can click Google button
+      showToast('Sign in with Google for full access', 'success');
+    });
+  }
+
+  function leaveThisClub() {
+    if (!currentClub) return;
+    if (myRole === 'owner') {
+      showToast('Owners cannot leave. Transfer ownership first or delete the club.', 'error');
+      return;
+    }
+    if (!confirm('Leave ' + currentClub.name + '? You will lose access to club data.')) return;
+
+    var clubId = currentClub.id;
+    var batch = db.batch();
+    batch.delete(db.collection('clubs').doc(clubId).collection('members').doc(currentUser.uid));
+    batch.delete(db.collection('users').doc(currentUser.uid).collection('clubs').doc(clubId));
+
+    batch.commit().then(function() {
+      showToast('You left the club', 'success');
+      leaveClub();
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Transactions ──
+  // ═══════════════════════════════════════════════════════════
+  function selectType(btn) {
+    document.querySelectorAll('.type-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+  }
+
+  function getSelectedType() {
+    var active = document.querySelector('.type-btn.active');
+    return active ? active.dataset.type : 'contribution';
+  }
+
+  function populateRecordForm() {
+    if (!currentClub) return;
+    var select = document.getElementById('txCategory');
+    var cats = currentClub.categories || DEFAULT_CATEGORIES;
+    select.innerHTML = cats.map(function(c) {
+      return '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>';
+    }).join('');
+    document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('txAmount').value = '';
+    document.getElementById('txDescription').value = '';
+
+    // Record For dropdown — treasurers/owners see all members, others see only Myself
+    var rfGroup = document.getElementById('recordForGroup');
+    var rfSelect = document.getElementById('recordForMember');
+    if (isTreasurer() && members.length > 0) {
+      rfGroup.style.display = '';
+      var opts = '<option value="__myself__">Myself (' + escHtml(currentUser.displayName || currentUser.email) + ')</option>';
+      members.forEach(function(m) {
+        if (m.uid === currentUser.uid) return; // skip self, already "Myself"
+        opts += '<option value="' + escHtml(m.uid) + '">' + escHtml(m.name || m.email || m.uid) + '</option>';
+      });
+      rfSelect.innerHTML = opts;
+    } else {
+      rfGroup.style.display = 'none';
+      rfSelect.innerHTML = '<option value="__myself__">Myself</option>';
+    }
+  }
+
+  function submitTransaction() {
+    var amount = parseFloat(document.getElementById('txAmount').value);
+    var description = document.getElementById('txDescription').value.trim();
+    var category = document.getElementById('txCategory').value;
+    var date = document.getElementById('txDate').value;
+    var type = getSelectedType();
+
+    if (!amount || amount <= 0) { showToast('Enter a valid amount', 'error'); return; }
+    if (!description) { showToast('Enter a description', 'error'); return; }
+
+    var btn = document.getElementById('submitTxBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+    // Status depends on role and workflow setting
+    var status = 'approved';
+    if (currentClub.requireApproval && myRole === 'member') {
+      status = 'pending';
+    }
+
+    // Determine who the transaction is recorded for
+    var rfValue = document.getElementById('recordForMember').value;
+    var recordedFor;
+    if (rfValue && rfValue !== '__myself__') {
+      var targetMember = members.find(function(m) { return m.uid === rfValue; });
+      if (targetMember) {
+        recordedFor = { uid: targetMember.uid, name: targetMember.name || targetMember.email || targetMember.uid, email: targetMember.email || '' };
+      }
+    }
+    if (!recordedFor) {
+      recordedFor = { uid: currentUser.uid, name: currentUser.displayName || currentUser.email, email: currentUser.email };
+    }
+
+    var txData = {
+      type: type,
+      amount: amount,
+      description: description,
+      category: category,
+      date: date,
+      recordedBy: {
+        uid: currentUser.uid,
+        name: currentUser.displayName || currentUser.email,
+        email: currentUser.email
+      },
+      recordedFor: recordedFor,
+      status: status,
+      approvedBy: status === 'approved' ? {
+        uid: currentUser.uid,
+        name: currentUser.displayName || currentUser.email
+      } : null,
+      approvedAt: status === 'approved' ? firebase.firestore.FieldValue.serverTimestamp() : null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection('clubs').doc(currentClub.id).collection('transactions')
+      .add(txData)
+      .then(function() {
+        btn.disabled = false;
+        btn.textContent = 'Add Transaction';
+        var msg = status === 'pending' ? 'Submitted for approval ⏳' : 'Transaction saved! ✅';
+        showToast(msg, 'success');
+        populateRecordForm();
+        showTab('dashboard');
+      }).catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Add Transaction';
+        showToast('Error: ' + err.message, 'error');
+      });
+  }
+
+  function approveTransaction(txId) {
+    if (!isTreasurer()) return;
+    db.collection('clubs').doc(currentClub.id).collection('transactions').doc(txId).update({
+      status: 'approved',
+      approvedBy: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() {
+      showToast('Transaction approved ✅', 'success');
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function rejectTransaction(txId) {
+    if (!isTreasurer()) return;
+    if (!confirm('Reject and delete this transaction?')) return;
+    db.collection('clubs').doc(currentClub.id).collection('transactions').doc(txId).delete()
+      .then(function() {
+        showToast('Transaction rejected', 'success');
+      }).catch(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      });
+  }
+
+  function deleteTransaction(txId) {
+    if (!isTreasurer()) {
+      showToast('Only treasurers can delete transactions', 'error');
+      return;
+    }
+    if (!confirm('Delete this transaction permanently?')) return;
+    db.collection('clubs').doc(currentClub.id).collection('transactions').doc(txId).delete()
+      .then(function() { showToast('Deleted', 'success'); })
+      .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Member Management ──
+  // ═══════════════════════════════════════════════════════════
+  function changeMemberRole(memberId, newRole) {
+    if (!isTreasurer()) return;
+    if (memberId === currentUser.uid) {
+      showToast('You cannot change your own role', 'error');
+      return;
+    }
+    db.collection('clubs').doc(currentClub.id).collection('members').doc(memberId)
+      .update({ role: newRole })
+      .then(function() {
+        // Also update the user's club reference
+        db.collection('users').doc(memberId).collection('clubs').doc(currentClub.id)
+          .update({ role: newRole }).catch(function() { /* may fail if user's doc doesn't exist */ });
+        showToast('Role updated', 'success');
+      }).catch(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      });
+  }
+
+  function removeMember(memberId, memberName) {
+    if (!isTreasurer()) return;
+    if (memberId === currentUser.uid) {
+      showToast('You cannot remove yourself', 'error');
+      return;
+    }
+    if (!confirm('Remove ' + memberName + ' from the club?')) return;
+
+    var batch = db.batch();
+    batch.delete(db.collection('clubs').doc(currentClub.id).collection('members').doc(memberId));
+    // Try to clean up user's club reference too (skip for placeholder members)
+    batch.commit().then(function() {
+      if (memberId.indexOf('ph_') !== 0) {
+        db.collection('users').doc(memberId).collection('clubs').doc(currentClub.id)
+          .delete().catch(function() { /* May fail - that's OK */ });
+      }
+      showToast(memberName + ' removed', 'success');
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  // ── Placeholder Claim Flow (Guest → Treasurer Approval) ──
+  function claimPlaceholder(placeholderUid, placeholderName) {
+    if (!currentClub || !currentUser) return;
+    var guestName = currentUser.displayName || 'Guest';
+    if (!confirm('Claim "' + placeholderName + '" as your profile?\n\nThe treasurer will be notified to approve.')) return;
+
+    db.collection('clubs').doc(currentClub.id).collection('members').doc(placeholderUid).update({
+      claimRequest: {
+        guestUid: currentUser.uid,
+        guestName: guestName,
+        requestedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }
+    }).then(function() {
+      showToast('Claim request sent! The treasurer will review it.', 'success');
+    }).catch(function(err) {
+      showToast('Could not send claim: ' + err.message, 'error');
+    });
+  }
+
+  function approveClaimRequest(placeholderUid) {
+    if (!isTreasurer() || !currentClub) return;
+    var placeholder = members.find(function(m) { return m.uid === placeholderUid; });
+    if (!placeholder || !placeholder.claimRequest) {
+      showToast('No pending claim found', 'error');
+      return;
+    }
+    var claim = placeholder.claimRequest;
+    if (!confirm('Approve ' + claim.guestName + ' claiming "' + (placeholder.name || '') + '"?')) return;
+
+    // Create a real member doc under the guest's UID, copying placeholder data
+    var newDoc = {
+      uid: claim.guestUid,
+      name: placeholder.name,
+      email: placeholder.email || '',
+      role: 'member',
+      isPlaceholder: false,
+      claimedFromPlaceholder: placeholderUid,
+      claimedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      joinedAt: placeholder.joinedAt || firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    var batch = db.batch();
+    // Create new member doc for the guest
+    batch.set(db.collection('clubs').doc(currentClub.id).collection('members').doc(claim.guestUid), newDoc);
+    // Delete the old placeholder doc
+    batch.delete(db.collection('clubs').doc(currentClub.id).collection('members').doc(placeholderUid));
+
+    batch.commit().then(function() {
+      showToast(claim.guestName + ' approved as ' + (placeholder.name || 'member') + '!', 'success');
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function rejectClaimRequest(placeholderUid) {
+    if (!isTreasurer() || !currentClub) return;
+    if (!confirm('Reject this claim request?')) return;
+
+    db.collection('clubs').doc(currentClub.id).collection('members').doc(placeholderUid).update({
+      claimRequest: firebase.firestore.FieldValue.delete()
+    }).then(function() {
+      showToast('Claim rejected', 'success');
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function copyClubId() {
+    if (!currentClub) return;
+    var id = currentClub.id;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(id).then(function() {
+        showToast('Club ID copied!', 'success');
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = id;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Club ID copied!', 'success');
+    }
+  }
+
+  function copyInviteLink() {
+    if (!currentClub) return;
+    var baseUrl = window.location.origin + window.location.pathname;
+    var link = baseUrl + '?join=' + currentClub.id;
+
+    // Try Web Share API first (shows native share sheet on mobile)
+    if (navigator.share) {
+      navigator.share({
+        title: currentClub.name + ' — Join us!',
+        text: '🏟️ Join ' + currentClub.name + ' on ClubMates!',
+        url: link
+      }).catch(function() { /* user cancelled share */ });
+      return;
+    }
+
+    // Fallback: copy just the link
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(link).then(function() {
+        showToast('Invite link copied!', 'success');
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = link;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Invite link copied!', 'success');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Club Settings ──
+  // ═══════════════════════════════════════════════════════════
+  function openSettingsModal() {
+    if (!isTreasurer()) { showToast('Only treasurers can edit settings', 'error'); return; }
+    pendingLogoBase64 = null;
+    var preview = document.getElementById('settingsLogoPreview');
+    if (currentClub.logoBase64) {
+      preview.innerHTML = '<img src="' + currentClub.logoBase64 + '" alt="">';
+    } else {
+      preview.innerHTML = '<div class="placeholder">📷<br>Logo</div>';
+    }
+    document.getElementById('settingsClubName').value = currentClub.name || '';
+    document.getElementById('settingsCurrency').value = currentClub.currency || '₹';
+    document.getElementById('settingsApproval').checked = !!currentClub.requireApproval;
+    // Guest access
+    var gaSelect = document.getElementById('settingsGuestAccess');
+    gaSelect.value = currentClub.guestAccess || 'disabled';
+    document.getElementById('settingsGuestPin').value = currentClub.guestPin || '';
+    toggleGuestPinVisibility();
+    gaSelect.onchange = toggleGuestPinVisibility;
+    document.getElementById('settingsModal').classList.add('show');
+  }
+  function toggleGuestPinVisibility() {
+    var v = document.getElementById('settingsGuestAccess').value;
+    document.getElementById('guestPinGroup').style.display = v === 'pin' ? '' : 'none';
+  }
+  function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('show'); }
+
+  function saveClubSettings() {
+    if (!isTreasurer()) return;
+    var name = document.getElementById('settingsClubName').value.trim();
+    if (!name) { showToast('Club name required', 'error'); return; }
+
+    var updates = {
+      name: name,
+      currency: document.getElementById('settingsCurrency').value.trim() || '₹',
+      requireApproval: document.getElementById('settingsApproval').checked,
+      guestAccess: document.getElementById('settingsGuestAccess').value || 'disabled',
+      guestPin: document.getElementById('settingsGuestPin').value.trim() || ''
+    };
+    if (pendingLogoBase64 !== null) updates.logoBase64 = pendingLogoBase64;
+
+    db.collection('clubs').doc(currentClub.id).update(updates)
+      .then(function() {
+        // Update user's club reference
+        var userUpdates = { clubName: name };
+        if (pendingLogoBase64 !== null) userUpdates.logoBase64 = pendingLogoBase64;
+        db.collection('users').doc(currentUser.uid).collection('clubs').doc(currentClub.id)
+          .update(userUpdates).catch(function() {});
+        pendingLogoBase64 = null;
+        closeSettingsModal();
+        showToast('Settings saved', 'success');
+      }).catch(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── UI Rendering ──
+  // ═══════════════════════════════════════════════════════════
+  function renderAppHeader() {
+    if (!currentClub) return;
+    document.getElementById('appClubName').textContent = currentClub.name || 'Club';
+    document.getElementById('clubIdDisplay').textContent = currentClub.id || '';
+    var logo = document.getElementById('appClubLogo');
+    if (currentClub.logoBase64) {
+      logo.src = currentClub.logoBase64;
+      logo.classList.remove('hidden');
+    } else {
+      logo.src = '';
+      logo.classList.add('hidden');
+    }
+    var avatar = document.getElementById('appUserAvatar');
+    var guest = isGuest() || myRole === 'guest';
+    var guestName = guest && currentUser.displayName ? currentUser.displayName : null;
+    avatar.textContent = guest ? (guestName ? guestName.charAt(0).toUpperCase() : '👁') : (currentUser.displayName || currentUser.email || '?').charAt(0).toUpperCase();
+    // Update menu panel header
+    document.getElementById('menuUserName').textContent = guest ? (guestName || 'Guest') : (currentUser.displayName || 'User');
+    document.getElementById('menuUserEmail').textContent = guest ? 'Guest — read-only access' : (currentUser.email || '');
+  }
+
+  function updateRoleVisibility() {
+    var guest = isGuest() || myRole === 'guest';
+    // Show/hide treasurer-only elements
+    var isActual = isTreasurer();
+    document.getElementById('menuSettingsGroup').style.display = isActual ? '' : 'none';
+    document.getElementById('addMemberSection').style.display = isActual ? 'block' : 'none';
+    if (isActual && currentClub) loadPendingInvites();
+    document.getElementById('menuImportItem').style.display = isActual ? '' : 'none';
+    // Show/hide pending chip based on approval workflow
+    var chipPending = document.getElementById('chipPending');
+    if (currentClub && currentClub.requireApproval) {
+      chipPending.classList.remove('hidden');
+    } else {
+      chipPending.classList.add('hidden');
+    }
+    // Guest mode: hide Record tab, show guest banner
+    document.getElementById('navRecord').style.display = guest ? 'none' : '';
+    var guestBanner = document.getElementById('guestBanner');
+    if (guest) {
+      guestBanner.classList.remove('hidden');
+      var gn = currentUser && currentUser.displayName ? currentUser.displayName : 'Guest';
+      document.getElementById('guestBannerName').textContent = gn + ' (Guest)';
+    } else {
+      guestBanner.classList.add('hidden');
+    }
+  }
+
+  function renderDashboard() {
+    if (!currentClub) return;
+    var curr = currentClub.currency || '₹';
+
+    var approvedTx = transactions.filter(function(t) { return t.status === 'approved'; });
+    var pendingTx = transactions.filter(function(t) { return t.status === 'pending'; });
+
+    var contributions = 0, sponsorships = 0, expenses = 0, pendingAmt = 0;
+    approvedTx.forEach(function(t) {
+      var amt = parseFloat(t.amount) || 0;
+      if (t.type === 'expense') expenses += amt;
+      else if (t.type === 'sponsorship') sponsorships += amt;
+      else contributions += amt;
+    });
+    pendingTx.forEach(function(t) { pendingAmt += parseFloat(t.amount) || 0; });
+
+    var income = contributions + sponsorships;
+    var balance = income - expenses;
+    document.getElementById('dashBalance').textContent = curr + formatNum(balance);
+    document.getElementById('dashBalanceSub').textContent = 'Income: ' + curr + formatNum(income) + ' | Expenses: ' + curr + formatNum(expenses);
+    document.getElementById('dashContributions').textContent = curr + formatNum(contributions);
+    document.getElementById('dashSponsorships').textContent = curr + formatNum(sponsorships);
+    document.getElementById('dashExpense').textContent = curr + formatNum(expenses);
+
+    // Pending card
+    var pendingCard = document.getElementById('pendingCard');
+    if (currentClub.requireApproval && pendingTx.length > 0) {
+      pendingCard.classList.remove('hidden');
+      document.getElementById('dashPending').textContent = curr + formatNum(pendingAmt);
+      document.getElementById('dashPendingLabel').textContent = pendingTx.length + ' transaction' + (pendingTx.length > 1 ? 's' : '') + ' pending approval';
+    } else {
+      pendingCard.classList.add('hidden');
+    }
+
+    // Pending badge
+    document.getElementById('pendingBadge').textContent = pendingTx.length;
+
+    // Recent transactions (last 5 approved + pending)
+    var recent = transactions.slice(0, 5);
+    var html = '';
+    if (recent.length === 0) {
+      html = '<div class="empty-state" style="padding:24px;"><div class="icon">📝</div><p>No transactions yet. Tap + to add one.</p></div>';
+    } else {
+      recent.forEach(function(tx) { html += renderTxItem(tx, true); });
+    }
+    document.getElementById('dashRecentTx').innerHTML = html;
+  }
+
+  var selectMode = false;
+  var selectedTxIds = {};
+
+  function toggleSelectMode() {
+    selectMode = !selectMode;
+    selectedTxIds = {};
+    var btn = document.getElementById('selectToggleBtn');
+    if (selectMode) {
+      btn.classList.add('active');
+      btn.textContent = '✕ Cancel';
+    } else {
+      btn.classList.remove('active');
+      btn.textContent = '☐ Select';
+    }
+    updateBulkBar();
+    renderHistory();
+  }
+
+  function toggleTxSelect(txId) {
+    if (selectedTxIds[txId]) {
+      delete selectedTxIds[txId];
+    } else {
+      selectedTxIds[txId] = true;
+    }
+    // Update checkbox & style without full re-render
+    var el = document.querySelector('[data-txid="' + txId + '"]');
+    if (el) {
+      var cb = el.querySelector('.tx-checkbox');
+      if (cb) cb.checked = !!selectedTxIds[txId];
+      if (selectedTxIds[txId]) el.classList.add('selected'); else el.classList.remove('selected');
+    }
+    updateBulkBar();
+  }
+
+  function selectAllTx() {
+    document.querySelectorAll('[data-txid]').forEach(function(el) {
+      var id = el.getAttribute('data-txid');
+      selectedTxIds[id] = true;
+      el.classList.add('selected');
+      var cb = el.querySelector('.tx-checkbox');
+      if (cb) cb.checked = true;
+    });
+    updateBulkBar();
+  }
+
+  function deselectAllTx() {
+    selectedTxIds = {};
+    document.querySelectorAll('[data-txid]').forEach(function(el) {
+      el.classList.remove('selected');
+      var cb = el.querySelector('.tx-checkbox');
+      if (cb) cb.checked = false;
+    });
+    updateBulkBar();
+  }
+
+  function updateBulkBar() {
+    var count = Object.keys(selectedTxIds).length;
+    var bar = document.getElementById('bulkBar');
+    if (selectMode && count > 0) {
+      bar.style.display = 'flex';
+      document.getElementById('bulkCount').textContent = count + ' selected';
+    } else {
+      bar.style.display = 'none';
+    }
+  }
+
+  function deleteSelectedTx() {
+    var ids = Object.keys(selectedTxIds);
+    if (!ids.length) return;
+    if (!confirm('Delete ' + ids.length + ' transaction' + (ids.length > 1 ? 's' : '') + ' permanently?')) return;
+
+    var batch = db.batch();
+    var txCol = db.collection('clubs').doc(currentClub.id).collection('transactions');
+    ids.forEach(function(id) {
+      batch.delete(txCol.doc(id));
+    });
+
+    batch.commit().then(function() {
+      showToast('Deleted ' + ids.length + ' transaction' + (ids.length > 1 ? 's' : ''), 'success');
+      selectedTxIds = {};
+      updateBulkBar();
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function renderHistory() {
+    if (!currentClub) return;
+    var query = (document.getElementById('historySearch').value || '').toLowerCase();
+    var filter = currentHistoryFilter;
+
+    // Show/hide select button for treasurers
+    document.getElementById('selectToggleBtn').style.display = isTreasurer() ? '' : 'none';
+
+    var list = transactions;
+
+    // Filter by status/type
+    if (filter === 'pending') {
+      list = list.filter(function(t) { return t.status === 'pending'; });
+    } else if (filter !== 'all') {
+      list = list.filter(function(t) { return t.type === filter; });
+    }
+
+    // Search
+    if (query) {
+      list = list.filter(function(t) {
+        var ownerName = (getTxOwner(t).name || '').toLowerCase();
+        var recorderName = (t.recordedBy && t.recordedBy.name || '').toLowerCase();
+        return (t.description || '').toLowerCase().includes(query) ||
+               (t.category || '').toLowerCase().includes(query) ||
+               ownerName.includes(query) ||
+               recorderName.includes(query);
+      });
+    }
+
+    // Sort
+    var sort = currentHistorySort;
+    list = list.slice(); // clone before sorting
+    if (sort === 'date-desc') {
+      list.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+    } else if (sort === 'date-asc') {
+      list.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
+    } else if (sort === 'amount-desc') {
+      list.sort(function(a, b) { return (parseFloat(b.amount) || 0) - (parseFloat(a.amount) || 0); });
+    } else if (sort === 'amount-asc') {
+      list.sort(function(a, b) { return (parseFloat(a.amount) || 0) - (parseFloat(b.amount) || 0); });
+    } else if (sort === 'member-asc') {
+      list.sort(function(a, b) { return (getTxOwner(a).name || '').localeCompare(getTxOwner(b).name || ''); });
+    } else if (sort === 'member-desc') {
+      list.sort(function(a, b) { return (getTxOwner(b).name || '').localeCompare(getTxOwner(a).name || ''); });
+    } else if (sort === 'category-asc') {
+      list.sort(function(a, b) { return (a.category || '').localeCompare(b.category || ''); });
+    }
+
+    var html = '';
+    if (list.length === 0) {
+      html = '<div class="text-center" style="padding:40px;color:var(--text-secondary);">No transactions found</div>';
+    } else {
+      list.forEach(function(tx) { html += renderTxItem(tx, true); });
+    }
+    document.getElementById('historyTxList').innerHTML = html;
+    // Sync checkboxes if in select mode
+    if (selectMode) updateBulkBar();
+  }
+
+  // Get the effective owner of a transaction (recordedFor, falling back to recordedBy)
+  function getTxOwner(tx) {
+    return tx.recordedFor || tx.recordedBy || { uid: null, name: 'Unknown', email: '' };
+  }
+
+  function renderTxItem(tx, showActions) {
+    var curr = (currentClub && currentClub.currency) || '₹';
+    var type = tx.type || 'expense';
+    var isPending = tx.status === 'pending';
+    var amount = parseFloat(tx.amount) || 0;
+    var sign = type === 'expense' ? '-' : '+';
+    var owner = getTxOwner(tx);
+    var recorder = owner.name || 'Unknown';
+    // Show "(by Recorder)" suffix if someone else recorded on behalf
+    if (tx.recordedFor && tx.recordedBy && tx.recordedFor.uid !== tx.recordedBy.uid) {
+      recorder += ' (by ' + tx.recordedBy.name + ')';
+    }
+    var emoji = type === 'expense' ? '🧾' : type === 'sponsorship' ? '🤝' : '💰';
+    var isSelected = selectMode && selectedTxIds[tx.id];
+
+    var html = '<div class="tx-item' + (isPending ? ' pending' : '') + (isSelected ? ' selected' : '') + '" data-txid="' + tx.id + '">';
+    if (selectMode && showActions && isTreasurer()) {
+      html += '<input type="checkbox" class="tx-checkbox"' + (isSelected ? ' checked' : '') + ' onclick="toggleTxSelect(\'' + tx.id + '\')" />';
+    }
+    html += '  <div class="tx-icon ' + type + '">' + emoji + '</div>';
+    html += '  <div class="tx-details">';
+    html += '    <div class="desc">' + escHtml(tx.description || '') + '</div>';
+    html += '    <div class="meta">' + escHtml(tx.category || '') + ' · ' + escHtml(tx.date || '') + ' · ' + escHtml(recorder) + '</div>';
+    if (isPending && showActions && isTreasurer()) {
+      html += '    <div class="tx-actions">';
+      html += '      <button class="btn-approve" onclick="approveTransaction(\'' + tx.id + '\')">✅ Approve</button>';
+      html += '      <button class="btn-reject" onclick="rejectTransaction(\'' + tx.id + '\')">❌ Reject</button>';
+      html += '    </div>';
+    }
+    html += '  </div>';
+    html += '  <div class="tx-amount">';
+    html += '    <div class="val ' + type + '">' + sign + curr + formatNum(amount) + '</div>';
+    if (isPending) html += '    <div class="status" style="color:var(--pending);font-weight:600;">Pending</div>';
+    html += '  </div>';
+    if (showActions && isTreasurer()) {
+      html += '<button class="tx-delete" onclick="deleteTransaction(\'' + tx.id + '\')" title="Delete">✕</button>';
+    }
+    html += '<button class="tx-share" onclick="event.stopPropagation();shareTxToWhatsApp(\'' + tx.id + '\')" title="Share on WhatsApp">' + WA_ICON_HTML + '</button>';
+    html += '</div>';
+    return html;
+  }
+
+  function renderMembers() {
+    var curr = (currentClub && currentClub.currency) || '₹';
+    // Compute per-member stats from approved transactions
+    var memberStats = {};
+    transactions.forEach(function(tx) {
+      if (tx.status && tx.status !== 'approved') return;
+      var owner = getTxOwner(tx);
+      var uid = owner.uid;
+      if (!uid) return;
+      if (!memberStats[uid]) memberStats[uid] = { contribution: 0, expense: 0, sponsorship: 0 };
+      var amt = parseFloat(tx.amount) || 0;
+      var type = (tx.type || '').toLowerCase();
+      if (type === 'contribution') memberStats[uid].contribution += amt;
+      else if (type === 'expense') memberStats[uid].expense += amt;
+      else if (type === 'sponsorship') memberStats[uid].sponsorship += amt;
+    });
+
+    var html = '';
+    members.sort(function(a, b) {
+      // Placeholder members go to the bottom
+      var aph = a.isPlaceholder ? 1 : 0;
+      var bph = b.isPlaceholder ? 1 : 0;
+      if (aph !== bph) return aph - bph;
+      var order = { owner: 0, treasurer: 1, member: 2 };
+      return (order[a.role] || 2) - (order[b.role] || 2);
+    });
+    members.forEach(function(m) {
+      var initial = (m.name || '?').charAt(0).toUpperCase();
+      var stats = memberStats[m.uid] || { contribution: 0, expense: 0, sponsorship: 0 };
+      var isPlaceholder = m.isPlaceholder === true;
+      html += '<div class="member-item' + (isPlaceholder ? ' placeholder-member' : '') + '">';
+      html += '  <div class="member-avatar' + (isPlaceholder ? ' placeholder' : '') + '">' + initial + '</div>';
+      html += '  <div class="member-info">';
+      html += '    <div class="name">' + escHtml(m.name || 'Unknown') + (m.uid === currentUser.uid ? ' (you)' : '');
+      if (isPlaceholder) html += ' <span style="font-size:10px;color:var(--pending);font-weight:600;background:#FFF3E0;padding:1px 6px;border-radius:8px;margin-left:4px;">placeholder</span>';
+      html += '</div>';
+      html += '    <div class="email">' + escHtml(m.email || (isPlaceholder ? 'No account yet' : '')) + '</div>';
+      // Stats row
+      var hasStats = stats.contribution > 0 || stats.expense > 0 || stats.sponsorship > 0;
+      if (hasStats) {
+        html += '    <div class="member-stats">';
+        if (stats.contribution > 0) html += '<span class="ms contrib">💰 ' + curr + formatNum(stats.contribution) + '</span>';
+        if (stats.expense > 0) html += '<span class="ms expense">🧾 ' + curr + formatNum(stats.expense) + '</span>';
+        if (stats.sponsorship > 0) html += '<span class="ms sponsor">🤝 ' + curr + formatNum(stats.sponsorship) + '</span>';
+        html += '    </div>';
+      }
+      html += '  </div>';
+
+      if (isTreasurer() && m.uid !== currentUser.uid) {
+        if (isPlaceholder) {
+          // Placeholder members can only be 'member' role — just show badge + remove button
+          html += '  <span class="role-badge role-member">member</span>';
+          // Show pending claim request to treasurer
+          if (m.claimRequest) {
+            html += '  <div style="margin-top:4px;font-size:11px;">';
+            html += '    <span style="color:var(--pending);font-weight:600;">🙋 Claim by ' + escHtml(m.claimRequest.guestName) + '</span><br>';
+            html += '    <button style="font-size:11px;padding:2px 8px;margin-top:2px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;margin-right:4px;" onclick="approveClaimRequest(\'' + m.uid + '\')">✅ Approve</button>';
+            html += '    <button style="font-size:11px;padding:2px 8px;margin-top:2px;background:var(--danger);color:white;border:none;border-radius:6px;cursor:pointer;" onclick="rejectClaimRequest(\'' + m.uid + '\')">❌ Reject</button>';
+            html += '  </div>';
+          }
+        } else {
+          // Role selector for real members
+          html += '  <select class="member-role-select" onchange="changeMemberRole(\'' + m.uid + '\', this.value)">';
+          html += '    <option value="member"' + (m.role === 'member' ? ' selected' : '') + '>Member</option>';
+          html += '    <option value="treasurer"' + (m.role === 'treasurer' ? ' selected' : '') + '>Treasurer</option>';
+          if (myRole === 'owner') {
+            html += '    <option value="owner"' + (m.role === 'owner' ? ' selected' : '') + '>Owner</option>';
+          }
+          html += '  </select>';
+        }
+        html += '  <button style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:4px;" onclick="removeMember(\'' + m.uid + '\', \'' + escHtml(m.name || '') + '\')" title="Remove">✕</button>';
+      } else {
+        html += '  <span class="role-badge role-' + (m.role || 'member') + '">' + (m.role || 'member') + '</span>';
+        // Guest: show "This is me" claim button on unclaimed placeholders
+        var guest = isGuest() || myRole === 'guest';
+        if (guest && isPlaceholder && !m.claimRequest) {
+          html += '  <button style="font-size:11px;padding:4px 10px;background:#E3F2FD;color:#1565C0;border:1px solid #1565C0;border-radius:8px;cursor:pointer;margin-left:4px;" onclick="claimPlaceholder(\'' + m.uid + '\', \'' + escHtml(m.name || '') + '\')">🙋 This is me</button>';
+        } else if (guest && isPlaceholder && m.claimRequest && m.claimRequest.guestUid === currentUser.uid) {
+          html += '  <span style="font-size:11px;color:var(--pending);font-weight:600;margin-left:4px;">⏳ Pending approval</span>';
+        }
+      }
+      html += '</div>';
+    });
+    document.getElementById('membersList').innerHTML = html;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Navigation ──
+  // ═══════════════════════════════════════════════════════════
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    var el = document.getElementById('screen-' + name);
+    if (el) el.classList.add('active');
+    closeMenu();
+  }
+
+  function openMenu() {
+    document.getElementById('menuOverlay').classList.add('show');
+    document.getElementById('menuPanel').classList.add('show');
+    // Update menu for guest mode
+    var guest = isGuest() || myRole === 'guest';
+    document.getElementById('menuUserName').textContent = guest ? 'Guest' : (currentUser.displayName || 'User');
+    document.getElementById('menuUserEmail').textContent = guest ? 'Read-only access' : (currentUser.email || '');
+  }
+
+  function closeMenu() {
+    document.getElementById('menuOverlay').classList.remove('show');
+    document.getElementById('menuPanel').classList.remove('show');
+  }
+
+  function switchPollsSubtab(sub) {
+    document.querySelectorAll('.polls-subtab').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById(sub === 'umpiring' ? 'subtabUmpiring' : 'subtabAvailability').classList.add('active');
+    document.querySelectorAll('.polls-subpanel').forEach(function(p) { p.style.display = 'none'; });
+    document.getElementById(sub === 'umpiring' ? 'umpiringSubpanel' : 'pollsSubpanel').style.display = '';
+    if (sub === 'umpiring') renderUmpiring();
+    else renderPolls();
+  }
+
+  function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    var tab = document.getElementById('tab-' + name);
+    if (tab) tab.classList.add('active');
+    // Activate nav item
+    var navItems = document.querySelectorAll('.nav-item');
+    var tabNames = ['dashboard', 'record', 'polls', 'members'];
+    var idx = tabNames.indexOf(name);
+    if (idx >= 0 && navItems[idx]) navItems[idx].classList.add('active');
+    // Populate record form when switching to Record tab
+    if (name === 'record') {
+      populateRecordForm();
+    }
+    if (name === 'members') {
+      renderMembers();
+    }
+    if (name === 'polls') {
+      var activeSubtab = document.querySelector('.polls-subtab.active');
+      var sub = activeSubtab && activeSubtab.id === 'subtabUmpiring' ? 'umpiring' : 'availability';
+      if (sub === 'availability') renderPolls();
+      else renderUmpiring();
+    }
+    if (name === 'history') {
+      renderHistory();
+    }
+  }
+
+  function setHistoryFilter(btn) {
+    document.querySelectorAll('#historyFilters .chip').forEach(function(c) { c.classList.remove('active'); });
+    btn.classList.add('active');
+    currentHistoryFilter = btn.dataset.filter;
+    renderHistory();
+  }
+
+  function setHistorySort(val) {
+    currentHistorySort = val;
+    renderHistory();
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Export ──
+  // ═══════════════════════════════════════════════════════════
+  function exportExcel() {
+    if (!currentClub) return;
+    var curr = currentClub.currency || '₹';
+    var list = transactions;
+    if (!list.length) { showToast('No transactions to export', 'error'); return; }
+
+    var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+    html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+    html += '<x:Name>Transactions</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>';
+    html += '</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
+    html += '<table border="1">';
+    html += '<tr style="background:#1B5E20;color:white;font-weight:bold;">';
+    html += '<td>Date</td><td>Type</td><td>Category</td><td>Description</td><td>Amount (' + curr + ')</td><td>Status</td><td>Recorded By</td>';
+    html += '</tr>';
+
+    var totalIn = 0, totalOut = 0;
+    var sorted = list.slice().sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+    sorted.forEach(function(tx) {
+      var type = (tx.type || '').charAt(0).toUpperCase() + (tx.type || '').slice(1);
+      var isExpense = (tx.type || '').toLowerCase() === 'expense';
+      var rowColor = isExpense ? '#FFF0F0' : '#F0FFF0';
+      var amt = parseFloat(tx.amount) || 0;
+      if (tx.status === 'approved') {
+        if (isExpense) totalOut += amt; else totalIn += amt;
+      }
+      var recorder = tx.recordedBy ? tx.recordedBy.name : '';
+      html += '<tr style="background:' + rowColor + ';">';
+      html += '<td>' + (tx.date || '') + '</td>';
+      html += '<td>' + type + '</td>';
+      html += '<td>' + (tx.category || '') + '</td>';
+      html += '<td>' + escHtml(tx.description || '') + '</td>';
+      html += '<td style="text-align:right;">' + amt.toFixed(2) + '</td>';
+      html += '<td>' + (tx.status || 'approved') + '</td>';
+      html += '<td>' + escHtml(recorder) + '</td>';
+      html += '</tr>';
+    });
+    html += '<tr><td colspan="7"></td></tr>';
+    html += '<tr style="font-weight:bold;background:#E8F5E9;"><td colspan="4">Total Approved Income</td><td style="text-align:right;">' + totalIn.toFixed(2) + '</td><td colspan="2"></td></tr>';
+    html += '<tr style="font-weight:bold;background:#FFEBEE;"><td colspan="4">Total Approved Expenses</td><td style="text-align:right;">' + totalOut.toFixed(2) + '</td><td colspan="2"></td></tr>';
+    html += '<tr style="font-weight:bold;background:#FFF9C4;"><td colspan="4">Balance</td><td style="text-align:right;">' + (totalIn - totalOut).toFixed(2) + '</td><td colspan="2"></td></tr>';
+    html += '</table></body></html>';
+
+    var blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = (currentClub.name || 'Club') + '-Transactions-' + new Date().toISOString().split('T')[0] + '.xls';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Excel file downloaded!', 'success');
+  }
+
+  function exportJSON() {
+    if (!currentClub) return;
+    var data = {
+      club: currentClub.name,
+      exportedAt: new Date().toISOString(),
+      exportedBy: currentUser.email,
+      transactions: transactions,
+      members: members.map(function(m) { return { name: m.name, email: m.email, role: m.role }; })
+    };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = (currentClub.name || 'Club') + '-backup-' + new Date().toISOString().split('T')[0] + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('JSON backup downloaded!', 'success');
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── V1 Import ──
+  // ═══════════════════════════════════════════════════════════
+  var v1ImportData = [];
+
+  function openImportModal() {
+    if (!isTreasurer()) { showToast('Only treasurers can import data', 'error'); return; }
+    v1ImportData = [];
+    document.getElementById('importV1Url').value = '';
+    document.getElementById('importPreview').style.display = 'none';
+    document.getElementById('importProgress').style.display = 'none';
+    document.getElementById('importFetchBtn').style.display = '';
+    document.getElementById('importRunBtn').style.display = 'none';
+    document.getElementById('importFetchBtn').disabled = false;
+    document.getElementById('importFetchBtn').textContent = 'Fetch V1 Data';
+    document.getElementById('importModal').style.display = 'flex';
+  }
+
+  function closeImportModal() {
+    document.getElementById('importModal').style.display = 'none';
+  }
+
+  function fetchV1Data() {
+    var url = document.getElementById('importV1Url').value.trim();
+    if (!url) { showToast('Paste the V1 Apps Script URL', 'error'); return; }
+
+    var btn = document.getElementById('importFetchBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Fetching...';
+
+    // JSONP fetch from V1 Google Apps Script
+    var callbackName = '_v1import_' + Date.now();
+    var separator = url.indexOf('?') >= 0 ? '&' : '?';
+    var fullUrl = url + separator + 'action=getAll&callback=' + callbackName;
+
+    var timer = setTimeout(function() {
+      cleanup();
+      btn.disabled = false;
+      btn.textContent = 'Fetch V1 Data';
+      showToast('Timeout: Could not reach V1 API', 'error');
+    }, 15000);
+
+    window[callbackName] = function(result) {
+      cleanup();
+      btn.disabled = false;
+      btn.textContent = 'Fetch V1 Data';
+
+      if (!result || !result.success || !result.data || !result.data.length) {
+        showToast('No transactions found in V1', 'error');
+        return;
+      }
+
+      v1ImportData = result.data;
+
+      // Count by type
+      var counts = { contribution: 0, expense: 0, sponsorship: 0 };
+      var total = 0;
+      v1ImportData.forEach(function(tx) {
+        var t = (tx.type || '').toLowerCase();
+        if (counts[t] !== undefined) counts[t]++;
+        total += parseFloat(tx.amount) || 0;
+      });
+
+      document.getElementById('importPreviewStats').innerHTML =
+        '<div>' + v1ImportData.length + ' transactions found</div>' +
+        '<div style="margin-top:4px;">💰 ' + counts.contribution + ' contributions · 🧾 ' + counts.expense + ' expenses · 🤝 ' + counts.sponsorship + ' sponsorships</div>';
+      document.getElementById('importPreview').style.display = '';
+      document.getElementById('importFetchBtn').style.display = 'none';
+      document.getElementById('importRunBtn').style.display = '';
+    };
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[callbackName];
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    var script = document.createElement('script');
+    script.src = fullUrl;
+    script.onerror = function() {
+      cleanup();
+      btn.disabled = false;
+      btn.textContent = 'Fetch V1 Data';
+      showToast('Failed to connect to V1 API', 'error');
+    };
+    document.head.appendChild(script);
+  }
+
+  function runV1Import() {
+    if (!v1ImportData.length || !currentClub) return;
+
+    var btn = document.getElementById('importRunBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Importing...';
+
+    document.getElementById('importProgress').style.display = '';
+    var bar = document.getElementById('importProgressBar');
+    var text = document.getElementById('importProgressText');
+    var total = v1ImportData.length;
+    var done = 0;
+    var skipped = 0;
+    var failed = 0;
+    var batch = db.batch();
+    var txRef = db.collection('clubs').doc(currentClub.id).collection('transactions');
+
+    // Convert and batch-write all transactions
+    v1ImportData.forEach(function(v1tx) {
+      var type = (v1tx.type || 'contribution').toLowerCase();
+      if (type !== 'contribution' && type !== 'expense' && type !== 'sponsorship') {
+        type = 'contribution';
+      }
+
+      var date = v1tx.date || '';
+      // Handle date objects or ISO strings
+      if (date && date.length > 10) date = date.split('T')[0];
+
+      var txData = {
+        type: type,
+        amount: parseFloat(v1tx.amount) || 0,
+        description: v1tx.description || '',
+        category: v1tx.category || 'General',
+        date: date,
+        recordedBy: {
+          uid: currentUser.uid,
+          name: v1tx.recordedby || v1tx.recordedBy || currentUser.displayName || currentUser.email,
+          email: currentUser.email
+        },
+        status: 'approved',
+        approvedBy: {
+          uid: currentUser.uid,
+          name: currentUser.displayName || currentUser.email
+        },
+        approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        importedFrom: 'v1',
+        v1Id: v1tx.id || null
+      };
+
+      var docRef = txRef.doc();
+      batch.set(docRef, txData);
+    });
+
+    // Firestore batches have a 500 doc limit, so split if needed
+    if (total <= 500) {
+      batch.commit().then(function() {
+        bar.style.width = '100%';
+        text.textContent = total + ' / ' + total + ' imported';
+        btn.disabled = false;
+        btn.textContent = 'Done!';
+        btn.style.background = 'var(--primary)';
+        showToast('Imported ' + total + ' transactions from V1!', 'success');
+      }).catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Import Failed';
+        showToast('Import error: ' + err.message, 'error');
+      });
+    } else {
+      // Split into batches of 500
+      var batches = [];
+      var currentBatch = db.batch();
+      var count = 0;
+
+      v1ImportData.forEach(function(v1tx) {
+        var type = (v1tx.type || 'contribution').toLowerCase();
+        if (type !== 'contribution' && type !== 'expense' && type !== 'sponsorship') type = 'contribution';
+        var date = v1tx.date || '';
+        if (date && date.length > 10) date = date.split('T')[0];
+
+        var txData = {
+          type: type,
+          amount: parseFloat(v1tx.amount) || 0,
+          description: v1tx.description || '',
+          category: v1tx.category || 'General',
+          date: date,
+          recordedBy: {
+            uid: currentUser.uid,
+            name: v1tx.recordedby || v1tx.recordedBy || currentUser.displayName || currentUser.email,
+            email: currentUser.email
+          },
+          status: 'approved',
+          approvedBy: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
+          approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          importedFrom: 'v1',
+          v1Id: v1tx.id || null
+        };
+
+        currentBatch.set(txRef.doc(), txData);
+        count++;
+
+        if (count >= 500) {
+          batches.push(currentBatch);
+          currentBatch = db.batch();
+          count = 0;
+        }
+      });
+      if (count > 0) batches.push(currentBatch);
+
+      var batchDone = 0;
+      var commitNext = function() {
+        if (batchDone >= batches.length) {
+          bar.style.width = '100%';
+          text.textContent = total + ' / ' + total + ' imported';
+          btn.disabled = false;
+          btn.textContent = 'Done!';
+          btn.style.background = 'var(--primary)';
+          showToast('Imported ' + total + ' transactions from V1!', 'success');
+          return;
+        }
+        batches[batchDone].commit().then(function() {
+          batchDone++;
+          var progress = Math.min(100, Math.round((batchDone * 500 / total) * 100));
+          bar.style.width = progress + '%';
+          text.textContent = Math.min(batchDone * 500, total) + ' / ' + total;
+          commitNext();
+        }).catch(function(err) {
+          btn.disabled = false;
+          btn.textContent = 'Import Failed';
+          showToast('Batch error: ' + err.message, 'error');
+        });
+      };
+      commitNext();
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Umpiring Roster ──
+  // ═══════════════════════════════════════════════════════════
+  function openCreateUmpireModal() {
+    if (!isTreasurer()) return;
+    document.getElementById('umpireMatchTitle').value = '';
+    document.getElementById('umpireMatchDate').value = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+    document.getElementById('umpireVenue').value = '';
+    document.getElementById('umpireMethod').value = 'manual';
+    document.getElementById('diceResult').style.display = 'none';
+
+    // Populate assignee dropdown
+    var sel = document.getElementById('umpireAssignTo');
+    var opts = '';
+    members.forEach(function(m) {
+      opts += '<option value="' + escHtml(m.uid) + '">' + escHtml(m.name || m.email || m.uid) + '</option>';
+    });
+    sel.innerHTML = opts;
+
+    // Watch method change for dice
+    document.getElementById('umpireMethod').onchange = function() {
+      if (this.value === 'dice') {
+        rollUmpireDice();
+      } else {
+        document.getElementById('diceResult').style.display = 'none';
+      }
+    };
+
+    document.getElementById('createUmpireModal').classList.add('show');
+  }
+
+  function closeCreateUmpireModal() {
+    document.getElementById('createUmpireModal').classList.remove('show');
+  }
+
+  function rollUmpireDice() {
+    // Find members with lowest umpire count (smart dice)
+    var counts = {};
+    members.forEach(function(m) { counts[m.uid] = 0; });
+    umpireAssignments.forEach(function(a) {
+      if (a.assignedTo && a.assignedTo.uid) {
+        counts[a.assignedTo.uid] = (counts[a.assignedTo.uid] || 0) + 1;
+      }
+    });
+
+    // Find the minimum count
+    var minCount = Infinity;
+    members.forEach(function(m) {
+      var c = counts[m.uid] || 0;
+      if (c < minCount) minCount = c;
+    });
+
+    // Eligible = members with min count
+    var eligible = members.filter(function(m) { return (counts[m.uid] || 0) === minCount; });
+    if (eligible.length === 0) eligible = members;
+
+    // Random pick
+    var picked = eligible[Math.floor(Math.random() * eligible.length)];
+
+    // Show dice animation
+    var diceDiv = document.getElementById('diceResult');
+    diceDiv.style.display = '';
+    var diceEmoji = document.getElementById('diceEmoji');
+    var diceNameEl = document.getElementById('diceResultName');
+
+    // Animate dice
+    var faces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+    var rolls = 0;
+    var interval = setInterval(function() {
+      diceEmoji.textContent = faces[Math.floor(Math.random() * 6)];
+      rolls++;
+      if (rolls > 10) {
+        clearInterval(interval);
+        diceEmoji.textContent = '🎯';
+        diceNameEl.textContent = picked.name + '!';
+        // Auto-select in dropdown
+        document.getElementById('umpireAssignTo').value = picked.uid;
+      }
+    }, 100);
+  }
+
+  function createUmpireAssignment() {
+    if (!isTreasurer() || !currentClub) return;
+    var title = document.getElementById('umpireMatchTitle').value.trim();
+    var date = document.getElementById('umpireMatchDate').value;
+    var venue = document.getElementById('umpireVenue').value.trim();
+    var assignToUid = document.getElementById('umpireAssignTo').value;
+    var method = document.getElementById('umpireMethod').value;
+
+    if (!title) { showToast('Enter a match title', 'error'); return; }
+    if (!date) { showToast('Select a match date', 'error'); return; }
+    if (!assignToUid) { showToast('Select who to assign', 'error'); return; }
+
+    var assignee = members.find(function(m) { return m.uid === assignToUid; });
+    if (!assignee) { showToast('Member not found', 'error'); return; }
+
+    var btn = document.getElementById('createUmpireBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Assigning...';
+
+    // Determine season (e.g. "2025")
+    var season = date.split('-')[0];
+
+    var data = {
+      matchTitle: title,
+      matchDate: date,
+      venue: venue,
+      assignedTo: { uid: assignee.uid, name: assignee.name || assignee.email },
+      assignedBy: method === 'dice' ? 'dice' : 'manual',
+      assignedByUser: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
+      status: 'upcoming', // upcoming, completed, swapped
+      swapRequestedWith: null,
+      season: season,
+      rewardPoints: 0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').add(data)
+      .then(function() {
+        btn.disabled = false;
+        btn.textContent = 'Assign';
+        showToast('Umpire assigned: ' + assignee.name + ' 🏏', 'success');
+        closeCreateUmpireModal();
+      }).catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Assign';
+        showToast('Error: ' + err.message, 'error');
+      });
+  }
+
+  function setUmpireFilter(el) {
+    currentUmpireFilter = el.dataset.ufilter;
+    document.querySelectorAll('[data-ufilter]').forEach(function(c) { c.classList.remove('active'); });
+    el.classList.add('active');
+    renderUmpiring();
+  }
+
+  function renderUmpiring() {
+    if (!currentClub) return;
+    var guest = isGuest() || myRole === 'guest';
+
+    // Show/hide create section
+    var createSection = document.getElementById('createUmpireSection');
+    createSection.style.display = isTreasurer() ? '' : 'none';
+
+    var today = new Date().toISOString().split('T')[0];
+    var filter = currentUmpireFilter;
+
+    // Stats view
+    if (filter === 'stats') {
+      document.getElementById('umpireList').style.display = 'none';
+      document.getElementById('umpireStats').style.display = '';
+      renderUmpireStats();
+      return;
+    }
+
+    document.getElementById('umpireList').style.display = '';
+    document.getElementById('umpireStats').style.display = 'none';
+
+    var list = umpireAssignments.slice();
+
+    if (filter === 'upcoming') {
+      list = list.filter(function(a) { return a.matchDate >= today; });
+      list.sort(function(a, b) { return (a.matchDate || '').localeCompare(b.matchDate || ''); });
+    } else if (filter === 'my') {
+      list = list.filter(function(a) { return a.assignedTo && a.assignedTo.uid === currentUser.uid; });
+    } else if (filter === 'past') {
+      list = list.filter(function(a) { return a.matchDate < today; });
+    }
+
+    var html = '';
+    if (list.length === 0) {
+      html = '<div class="empty-state" style="padding:24px;"><div class="icon">🏏</div><p>No assignments found</p></div>';
+    } else {
+      list.forEach(function(a) {
+        var isPast = a.matchDate < today;
+        var isMe = a.assignedTo && a.assignedTo.uid === currentUser.uid;
+        html += '<div class="umpire-card' + (isMe ? ' my-duty' : '') + (isPast ? ' past' : '') + '">';
+        html += '  <div class="umpire-date">' + escHtml(a.matchDate || '') + '</div>';
+        html += '  <div class="umpire-details">';
+        html += '    <div class="umpire-title">' + escHtml(a.matchTitle || '') + '</div>';
+        if (a.venue) html += '    <div class="umpire-venue">📍 ' + escHtml(a.venue) + '</div>';
+        html += '    <div class="umpire-assignee">🏏 ' + escHtml(a.assignedTo ? a.assignedTo.name : 'TBD');
+        if (a.assignedBy === 'dice') html += ' <span style="font-size:10px;color:var(--text-secondary);">(🎲 dice roll)</span>';
+        html += '</div>';
+        // Swap button: current assignee can request swap, or anyone can volunteer
+        if (!isPast && !guest) {
+          if (isMe && !a.swapRequestedWith) {
+            html += '    <button class="swap-btn" onclick="requestUmpireSwap(\'' + a.id + '\')">🔄 Request Swap</button>';
+          } else if (a.swapRequestedWith && a.swapRequestedWith.uid === currentUser.uid) {
+            html += '    <button class="swap-btn accept" onclick="acceptUmpireSwap(\'' + a.id + '\')">✅ Accept Swap</button>';
+            html += '    <button class="swap-btn decline" onclick="declineUmpireSwap(\'' + a.id + '\')">❌ Decline</button>';
+          } else if (a.swapRequestedWith) {
+            html += '    <div style="font-size:11px;color:var(--pending);">🔄 Swap requested with ' + escHtml(a.swapRequestedWith.name) + '</div>';
+          } else if (!isMe) {
+            html += '    <button class="swap-btn volunteer" onclick="volunteerUmpire(\'' + a.id + '\')">🙋 I\'ll do it</button>';
+          }
+        }
+        // WhatsApp share button
+        html += '    <button class="swap-btn" style="background:#E8F5E9;color:#25D366;border-color:#25D366;margin-top:4px;" onclick="shareUmpireToWhatsApp(\'' + a.id + '\')">' + WA_ICON_HTML + ' Share</button>';
+        html += '  </div>';
+        // Delete for treasurer
+        if (isTreasurer()) {
+          html += '  <button style="background:none;border:none;color:var(--danger);font-size:16px;cursor:pointer;padding:4px;flex-shrink:0;" onclick="deleteUmpireAssignment(\'' + a.id + '\')" title="Delete">✕</button>';
+        }
+        html += '</div>';
+      });
+    }
+    document.getElementById('umpireList').innerHTML = html;
+  }
+
+  function renderUmpireStats() {
+    // Count assignments per member across all time and current season
+    var season = new Date().getFullYear().toString();
+    var totalCounts = {};
+    var seasonCounts = {};
+    umpireAssignments.forEach(function(a) {
+      if (!a.assignedTo) return;
+      var uid = a.assignedTo.uid;
+      var name = a.assignedTo.name;
+      if (!totalCounts[uid]) totalCounts[uid] = { name: name, count: 0 };
+      totalCounts[uid].count++;
+      if (a.season === season) {
+        if (!seasonCounts[uid]) seasonCounts[uid] = { name: name, count: 0 };
+        seasonCounts[uid].count++;
+      }
+    });
+
+    // Sort by count descending
+    var sortedTotal = Object.values(totalCounts).sort(function(a, b) { return b.count - a.count; });
+    var sortedSeason = Object.values(seasonCounts).sort(function(a, b) { return b.count - a.count; });
+
+    var html = '<div class="section-title" style="margin-bottom:8px;">📊 Season ' + season + '</div>';
+    if (sortedSeason.length === 0) {
+      html += '<div style="padding:12px;color:var(--text-secondary);font-size:13px;">No assignments this season</div>';
+    } else {
+      html += '<div class="stats-table">';
+      sortedSeason.forEach(function(s, i) {
+        var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
+        html += '<div class="stats-row">';
+        html += '  <span class="stats-medal">' + medal + '</span>';
+        html += '  <span class="stats-name">' + escHtml(s.name) + '</span>';
+        html += '  <span class="stats-count">' + s.count + ' match' + (s.count !== 1 ? 'es' : '') + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="section-title" style="margin:16px 0 8px;">📋 All Time</div>';
+    if (sortedTotal.length > 0) {
+      html += '<div class="stats-table">';
+      sortedTotal.forEach(function(s) {
+        html += '<div class="stats-row">';
+        html += '  <span class="stats-medal"></span>';
+        html += '  <span class="stats-name">' + escHtml(s.name) + '</span>';
+        html += '  <span class="stats-count">' + s.count + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    document.getElementById('umpireStats').innerHTML = html;
+  }
+
+  function requestUmpireSwap(assignmentId) {
+    // Show list of members to swap with
+    var otherMembers = members.filter(function(m) { return m.uid !== currentUser.uid; });
+    if (otherMembers.length === 0) { showToast('No other members to swap with', 'error'); return; }
+
+    var names = otherMembers.map(function(m, i) { return (i + 1) + '. ' + m.name; }).join('\n');
+    var choice = prompt('Who would you like to swap with?\n\n' + names + '\n\nEnter number:');
+    if (!choice) return;
+    var idx = parseInt(choice) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= otherMembers.length) { showToast('Invalid choice', 'error'); return; }
+
+    var target = otherMembers[idx];
+    db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).update({
+      swapRequestedWith: { uid: target.uid, name: target.name }
+    }).then(function() {
+      showToast('Swap request sent to ' + target.name, 'success');
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function acceptUmpireSwap(assignmentId) {
+    var assignment = umpireAssignments.find(function(a) { return a.id === assignmentId; });
+    if (!assignment) return;
+    if (!confirm('Accept umpire duty for ' + assignment.matchTitle + '?')) return;
+
+    db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).update({
+      assignedTo: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
+      swapRequestedWith: null,
+      status: 'swapped'
+    }).then(function() {
+      showToast('Swap accepted! You are now assigned 🏏', 'success');
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function declineUmpireSwap(assignmentId) {
+    db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).update({
+      swapRequestedWith: null
+    }).then(function() {
+      showToast('Swap declined', 'success');
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function volunteerUmpire(assignmentId) {
+    var assignment = umpireAssignments.find(function(a) { return a.id === assignmentId; });
+    if (!assignment) return;
+    if (!confirm('Volunteer to umpire for ' + assignment.matchTitle + '?')) return;
+
+    db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).update({
+      assignedTo: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
+      assignedBy: 'voluntary',
+      status: 'swapped'
+    }).then(function() {
+      showToast('You volunteered! Thanks 🏏', 'success');
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function deleteUmpireAssignment(assignmentId) {
+    if (!isTreasurer()) return;
+    if (!confirm('Delete this umpire assignment?')) return;
+    db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).delete()
+      .then(function() { showToast('Assignment deleted', 'success'); })
+      .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── WhatsApp Sharing (P0) ──
+  // ═══════════════════════════════════════════════════════════
+  var WA_ICON_HTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="#25D366" style="vertical-align:middle;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
+
+  function shareViaWhatsApp(text) {
+    // 1. Try native share sheet (no blank page, best UX)
+    if (navigator.share) {
+      navigator.share({ text: text }).catch(function() { /* user cancelled */ });
+      return;
+    }
+    // 2. Desktop fallback: WhatsApp Web
+    var encoded = encodeURIComponent(text);
+    window.open('https://api.whatsapp.com/send?text=' + encoded, '_blank');
+  }
+
+  function shareUmpireToWhatsApp(assignmentId) {
+    var a = umpireAssignments.find(function(u) { return u.id === assignmentId; });
+    if (!a) return;
+    var clubName = (currentClub && currentClub.name) || 'Club';
+    var text = '🏏 *' + clubName + ' — Umpire Duty*\n\n';
+    text += '📅 Date: ' + (a.matchDate || 'TBD') + '\n';
+    if (a.matchTitle) text += '🆚 Match: ' + a.matchTitle + '\n';
+    if (a.venue) text += '📍 Venue: ' + a.venue + '\n';
+    text += '🧑‍⚖️ Umpire: ' + (a.assignedTo ? a.assignedTo.name : 'TBD') + '\n';
+    if (a.assignedBy === 'dice') text += '🎲 Selected by dice roll\n';
+    else if (a.assignedBy === 'voluntary') text += '🙋 Volunteered\n';
+    text += '\n— _via ClubMates_';
+    shareViaWhatsApp(text);
+  }
+
+  function shareTxToWhatsApp(txId) {
+    var tx = transactions.find(function(t) { return t.id === txId; });
+    if (!tx) return;
+    var curr = (currentClub && currentClub.currency) || '₹';
+    var clubName = (currentClub && currentClub.name) || 'Club';
+    var type = tx.type || 'contribution';
+    var emoji = type === 'expense' ? '🧾' : type === 'sponsorship' ? '🤝' : '💰';
+    var sign = type === 'expense' ? '-' : '+';
+    var amt = parseFloat(tx.amount) || 0;
+    var owner = getTxOwner(tx);
+    var recorder = owner.name || 'Unknown';
+
+    var text = '📊 *' + clubName + '*\n';
+    text += emoji + ' ' + type.charAt(0).toUpperCase() + type.slice(1) + '\n';
+    text += '💵 ' + sign + curr + formatNum(amt) + '\n';
+    text += '📝 ' + (tx.description || '') + '\n';
+    if (tx.category) text += '🏷️ ' + tx.category + '\n';
+    if (tx.date) text += '📅 ' + tx.date + '\n';
+    text += '👤 ' + recorder + '\n';
+    if (tx.recordedFor && tx.recordedBy && tx.recordedFor.uid !== tx.recordedBy.uid) {
+      text += '✍️ Recorded by ' + tx.recordedBy.name + '\n';
+    }
+    text += '\n\u2014 _via ClubMates_';
+
+    shareViaWhatsApp(text);
+  }
+
+  function shareSummaryToWhatsApp() {
+    if (!currentClub) return;
+    var curr = currentClub.currency || '₹';
+    var clubName = currentClub.name || 'Club';
+
+    var approvedTx = transactions.filter(function(t) { return t.status === 'approved'; });
+    var pendingTx = transactions.filter(function(t) { return t.status === 'pending'; });
+
+    var contributions = 0, sponsorships = 0, expenses = 0, pendingAmt = 0;
+    approvedTx.forEach(function(t) {
+      var amt = parseFloat(t.amount) || 0;
+      if (t.type === 'expense') expenses += amt;
+      else if (t.type === 'sponsorship') sponsorships += amt;
+      else contributions += amt;
+    });
+    pendingTx.forEach(function(t) { pendingAmt += parseFloat(t.amount) || 0; });
+
+    var balance = (contributions + sponsorships) - expenses;
+
+    var text = '📊 *' + clubName + ' \u2014 Financial Summary*\n\n';
+    text += '💰 *Balance: ' + curr + formatNum(balance) + '*\n';
+    text += '📈 Contributions: ' + curr + formatNum(contributions) + '\n';
+    text += '🤝 Sponsorships: ' + curr + formatNum(sponsorships) + '\n';
+    text += '🧾 Expenses: ' + curr + formatNum(expenses) + '\n';
+    if (currentClub.requireApproval && pendingTx.length > 0) {
+      text += '⏳ Pending: ' + curr + formatNum(pendingAmt) + ' (' + pendingTx.length + ' txn' + (pendingTx.length > 1 ? 's' : '') + ')\n';
+    }
+    text += '👥 ' + members.length + ' member' + (members.length !== 1 ? 's' : '') + '\n';
+    text += '\n\u2014 _via ClubMates_';
+
+    shareViaWhatsApp(text);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Availability Polls (P1) ──
+  // ═══════════════════════════════════════════════════════════
+  function openCreatePollModal() {
+    document.getElementById('pollQuestion').value = '';
+    document.getElementById('pollMatchDate').value = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+    document.getElementById('pollOpponent').value = '';
+    document.getElementById('pollLocation').value = '';
+    document.getElementById('createPollModal').classList.add('show');
+  }
+
+  function closeCreatePollModal() {
+    document.getElementById('createPollModal').classList.remove('show');
+  }
+
+  function createPoll() {
+    if (!isTreasurer() || !currentClub) return;
+    var question = document.getElementById('pollQuestion').value.trim();
+    var matchDate = document.getElementById('pollMatchDate').value;
+    var opponent = document.getElementById('pollOpponent').value.trim();
+    var location = document.getElementById('pollLocation').value.trim();
+
+    if (!question) { showToast('Enter a question', 'error'); return; }
+    if (!matchDate) { showToast('Pick a match date', 'error'); return; }
+
+    var btn = document.getElementById('createPollBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Creating...';
+
+    db.collection('clubs').doc(currentClub.id).collection('polls').add({
+      question: question,
+      matchDate: matchDate,
+      opponent: opponent || null,
+      location: location || null,
+      createdBy: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      status: 'open',
+      responses: {}
+    }).then(function(docRef) {
+      btn.disabled = false;
+      btn.textContent = 'Create & Share';
+      closeCreatePollModal();
+      showToast('Poll created!', 'success');
+      // Auto-share to WhatsApp
+      sharePollToWhatsApp(docRef.id, question, matchDate, opponent, location);
+    }).catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'Create & Share';
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function respondToPoll(pollId, response) {
+    if (!currentClub || !currentUser) return;
+    var field = 'responses.' + currentUser.uid;
+    var update = {};
+    update[field] = {
+      response: response,
+      name: currentUser.displayName || currentUser.email,
+      respondedAt: new Date().toISOString()
+    };
+    db.collection('clubs').doc(currentClub.id).collection('polls').doc(pollId)
+      .update(update)
+      .then(function() {
+        var icon = response === 'yes' ? '✅' : response === 'no' ? '❌' : '🤔';
+        showToast('Response recorded: ' + icon + ' ' + response.toUpperCase(), 'success');
+        // Offer to share vote to WhatsApp group for team visibility
+        shareVoteToWhatsApp(pollId, response);
+      }).catch(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      });
+  }
+
+  function shareVoteToWhatsApp(pollId, response) {
+    var poll = polls.find(function(p) { return p.id === pollId; });
+    if (!poll || !currentClub) return;
+    var clubName = currentClub.name || 'Club';
+    var icon = response === 'yes' ? '✅' : response === 'no' ? '❌' : '🤔';
+    var label = response === 'yes' ? 'Available' : response === 'no' ? 'Not Available' : 'Maybe';
+    var name = currentUser.displayName || currentUser.email;
+
+    var text = icon + ' *' + name + '* voted *' + label + '*\n\n';
+    text += '📊 ' + clubName + '\n';
+    text += '❓ ' + (poll.question || '') + '\n';
+    if (poll.matchDate) text += '📅 ' + poll.matchDate;
+    if (poll.opponent) text += ' vs ' + poll.opponent;
+    if (poll.location) text += '\n📍 ' + poll.location;
+
+    // Show current tally
+    var responses = poll.responses || {};
+    // Include current vote in tally (may not be in snapshot yet)
+    responses[currentUser.uid] = { response: response };
+    var y = 0, n = 0, m = 0;
+    Object.keys(responses).forEach(function(uid) {
+      if (responses[uid].response === 'yes') y++;
+      else if (responses[uid].response === 'no') n++;
+      else m++;
+    });
+    text += '\n\n📊 *Tally:* ✅ ' + y + ' | ❌ ' + n + ' | 🤔 ' + m;
+
+    shareViaWhatsApp(text);
+  }
+
+  function closePoll(pollId) {
+    if (!isTreasurer() || !currentClub) return;
+    if (!confirm('Close this poll? Members will no longer be able to respond.')) return;
+    db.collection('clubs').doc(currentClub.id).collection('polls').doc(pollId)
+      .update({ status: 'closed' })
+      .then(function() { showToast('Poll closed', 'success'); })
+      .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
+  }
+
+  function reopenPoll(pollId) {
+    if (!isTreasurer() || !currentClub) return;
+    db.collection('clubs').doc(currentClub.id).collection('polls').doc(pollId)
+      .update({ status: 'open' })
+      .then(function() { showToast('Poll reopened', 'success'); })
+      .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
+  }
+
+  function deletePoll(pollId) {
+    if (!isTreasurer() || !currentClub) return;
+    if (!confirm('Delete this poll permanently?')) return;
+    db.collection('clubs').doc(currentClub.id).collection('polls').doc(pollId)
+      .delete()
+      .then(function() { showToast('Poll deleted', 'success'); })
+      .catch(function(err) { showToast('Error: ' + err.message, 'error'); });
+  }
+
+  function sharePollToWhatsApp(pollId, question, matchDate, opponent, location) {
+    if (!currentClub) return;
+    // If question not provided, look up from polls array
+    if (!question) {
+      var poll = polls.find(function(p) { return p.id === pollId; });
+      if (!poll) return;
+      question = poll.question;
+      matchDate = poll.matchDate;
+      opponent = poll.opponent;
+      location = poll.location;
+    }
+    var clubName = currentClub.name || 'Club';
+    var baseUrl = window.location.origin + window.location.pathname;
+    var base = baseUrl + '?poll=' + pollId + '&club=' + currentClub.id;
+
+    var text = '📊 *' + clubName + ' \u2014 Availability Poll*\n\n';
+    text += '❓ ' + question + '\n';
+    if (matchDate) text += '📅 Match Date: ' + matchDate + '\n';
+    if (opponent) text += '🆚 vs ' + opponent + '\n';
+    if (location) text += '📍 ' + location + '\n';
+    text += '\n� *Tap your response:*\n\n';
+    text += '🟢 *YES, I\'m in!*\n' + base + '&vote=yes\n\n';
+    text += '🔴 *NO, can\'t make it*\n' + base + '&vote=no\n\n';
+    text += '🟡 *MAYBE*\n' + base + '&vote=maybe\n\n';
+    text += '\u2014 _via ClubMates_';
+
+    shareViaWhatsApp(text);
+  }
+
+  function sharePollResultsToWhatsApp(pollId) {
+    var poll = polls.find(function(p) { return p.id === pollId; });
+    if (!poll || !currentClub) return;
+    var clubName = currentClub.name || 'Club';
+    var responses = poll.responses || {};
+    var yes = [], no = [], maybe = [];
+    Object.keys(responses).forEach(function(uid) {
+      var r = responses[uid];
+      if (r.response === 'yes') yes.push(r.name || 'Unknown');
+      else if (r.response === 'no') no.push(r.name || 'Unknown');
+      else maybe.push(r.name || 'Unknown');
+    });
+
+    var text = '📊 *' + clubName + ' \u2014 Poll Results*\n\n';
+    text += '❓ ' + (poll.question || '') + '\n';
+    if (poll.matchDate) text += '📅 ' + poll.matchDate;
+    if (poll.opponent) text += ' vs ' + poll.opponent;
+    if (poll.location) text += '\n📍 ' + poll.location;
+    text += '\n\n';
+    text += '✅ *Available (' + yes.length + '):*\n';
+    text += yes.length ? yes.join(', ') : '\u2014';
+    text += '\n\n❌ *Not Available (' + no.length + '):*\n';
+    text += no.length ? no.join(', ') : '\u2014';
+    text += '\n\n🤔 *Maybe (' + maybe.length + '):*\n';
+    text += maybe.length ? maybe.join(', ') : '\u2014';
+    text += '\n\n\u2014 _via ClubMates_';
+
+    shareViaWhatsApp(text);
+  }
+
+  function renderPolls() {
+    if (!currentClub) return;
+    // Show create button for treasurers
+    document.getElementById('createPollSection').style.display = isTreasurer() ? '' : 'none';
+
+    var html = '';
+    if (polls.length === 0) {
+      html = '<div class="poll-empty">No polls yet' + (isTreasurer() ? ' \u2014 create one above!' : '') + '</div>';
+    } else {
+      // Sort: open first, then by matchDate descending
+      var sorted = polls.slice().sort(function(a, b) {
+        if (a.status !== b.status) return a.status === 'open' ? -1 : 1;
+        return (b.matchDate || '').localeCompare(a.matchDate || '');
+      });
+
+      sorted.forEach(function(poll) {
+        var responses = poll.responses || {};
+        var yes = 0, no = 0, maybe = 0, total = 0;
+        var myResponse = responses[currentUser.uid] ? responses[currentUser.uid].response : null;
+        Object.keys(responses).forEach(function(uid) {
+          total++;
+          if (responses[uid].response === 'yes') yes++;
+          else if (responses[uid].response === 'no') no++;
+          else maybe++;
+        });
+
+        var isOpen = poll.status === 'open';
+
+        html += '<div class="poll-card">';
+        html += '  <div class="poll-q">' + escHtml(poll.question || '') + '</div>';
+        html += '  <div class="poll-meta">';
+        html += '    <span class="poll-status ' + poll.status + '">' + (isOpen ? 'Open' : 'Closed') + '</span>';
+        if (poll.matchDate) html += '    <span>📅 ' + poll.matchDate + '</span>';
+        if (poll.opponent) html += '    <span>🆚 ' + escHtml(poll.opponent) + '</span>';
+        if (poll.location) html += '    <span>📍 ' + escHtml(poll.location) + '</span>';
+        html += '  </div>';
+
+        // Response bar
+        if (total > 0) {
+          var yPct = (yes / total * 100).toFixed(0);
+          var nPct = (no / total * 100).toFixed(0);
+          var mPct = (maybe / total * 100).toFixed(0);
+          html += '  <div class="poll-bar">';
+          if (yes > 0) html += '<div class="bar-yes" style="width:' + yPct + '%"></div>';
+          if (no > 0) html += '<div class="bar-no" style="width:' + nPct + '%"></div>';
+          if (maybe > 0) html += '<div class="bar-maybe" style="width:' + mPct + '%"></div>';
+          html += '  </div>';
+          html += '  <div class="poll-counts">';
+          html += '    <span class="c-yes">✅ ' + yes + '</span>';
+          html += '    <span class="c-no">❌ ' + no + '</span>';
+          html += '    <span class="c-maybe">🤔 ' + maybe + '</span>';
+          html += '    <span>· ' + total + '/' + members.length + ' responded</span>';
+          html += '  </div>';
+        } else {
+          html += '  <div class="poll-counts"><span>No responses yet · 0/' + members.length + '</span></div>';
+        }
+
+        // Actions
+        html += '  <div class="poll-actions">';
+        if (isOpen) {
+          html += '    <button class="poll-btn-yes' + (myResponse === 'yes' ? ' voted' : '') + '" onclick="respondToPoll(\'' + poll.id + '\',\'yes\')">✅ Yes</button>';
+          html += '    <button class="poll-btn-no' + (myResponse === 'no' ? ' voted' : '') + '" onclick="respondToPoll(\'' + poll.id + '\',\'no\')">❌ No</button>';
+          html += '    <button class="poll-btn-maybe' + (myResponse === 'maybe' ? ' voted' : '') + '" onclick="respondToPoll(\'' + poll.id + '\',\'maybe\')">🤔 Maybe</button>';
+        }
+        html += '    <button class="poll-btn-share" onclick="sharePollToWhatsApp(\'' + poll.id + '\')">' + WA_ICON_HTML + '</button>';
+        if (isTreasurer()) {
+          html += '    <button class="poll-btn-share" onclick="sharePollResultsToWhatsApp(\'' + poll.id + '\')">📋 Results</button>';
+          if (isOpen) {
+            html += '    <button class="poll-btn-close" onclick="closePoll(\'' + poll.id + '\')">🔒 Close</button>';
+          } else {
+            html += '    <button style="font-size:11px;" onclick="reopenPoll(\'' + poll.id + '\')">🔓 Reopen</button>';
+          }
+          html += '    <button class="poll-btn-close" onclick="deletePoll(\'' + poll.id + '\')">🗑</button>';
+        }
+        html += '  </div>';
+
+        // Detail list (show names)
+        if (total > 0) {
+          html += '  <div class="poll-detail-list">';
+          Object.keys(responses).forEach(function(uid) {
+            var r = responses[uid];
+            var icon = r.response === 'yes' ? '✅' : r.response === 'no' ? '❌' : '🤔';
+            html += '    <div class="poll-detail-item"><span>' + icon + '</span><span style="flex:1;">' + escHtml(r.name || 'Unknown') + '</span></div>';
+          });
+          html += '  </div>';
+        }
+
+        html += '</div>';
+      });
+    }
+    document.getElementById('pollsList').innerHTML = html;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Utilities ──
+  // ═══════════════════════════════════════════════════════════
+  function isTreasurer() {
+    return myRole === 'owner' || myRole === 'treasurer';
+  }
+
+  function resizeImage(file, maxSize, callback) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var size = Math.min(img.width, img.height);
+        var sx = (img.width - size) / 2;
+        var sy = (img.height - size) / 2;
+        canvas.width = maxSize;
+        canvas.height = maxSize;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, maxSize, maxSize);
+        callback(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleLogoSelect(input, previewId, context) {
+    var file = input.files && input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select an image file', 'error');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image too large. Max 5MB.', 'error');
+      return;
+    }
+    resizeImage(file, 96, function(base64) {
+      pendingLogoBase64 = base64;
+      document.getElementById(previewId).innerHTML = '<img src="' + base64 + '" alt="">';
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Add Member by Email ──
+  // ═══════════════════════════════════════════════════════════
+  function addMemberByEmail() {
+    if (!isTreasurer() || !currentClub) return;
+    var emailInput = document.getElementById('addMemberEmail');
+    var email = emailInput.value.trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      showToast('Enter a valid email address', 'error');
+      return;
+    }
+    // Check if already a member
+    var existing = members.find(function(m) { return m.email && m.email.toLowerCase() === email; });
+    if (existing) {
+      showToast(email + ' is already a member', 'error');
+      return;
+    }
+    db.collection('pendingInvites').add({
+      email: email,
+      clubId: currentClub.id,
+      clubName: currentClub.name,
+      logoBase64: currentClub.logoBase64 || null,
+      invitedBy: currentUser.displayName || currentUser.email,
+      invitedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() {
+      emailInput.value = '';
+      showToast('Invite sent! ' + email + ' will auto-join when they sign in.', 'success');
+      loadPendingInvites();
+    }).catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+    });
+  }
+
+  function loadPendingInvites() {
+    if (!currentClub) return;
+    db.collection('pendingInvites')
+      .where('clubId', '==', currentClub.id)
+      .get().then(function(snap) {
+        var html = '';
+        snap.docs.forEach(function(doc) {
+          var d = doc.data();
+          html += '<div class="pending-invite-item">';
+          html += '  <span>✉️</span>';
+          html += '  <span class="pi-email">' + escHtml(d.email) + '</span>';
+          html += '  <span style="font-size:10px;color:var(--pending);">pending</span>';
+          html += '  <button class="pi-remove" onclick="cancelInvite(\'' + doc.id + '\')" title="Cancel invite">✕</button>';
+          html += '</div>';
+        });
+        document.getElementById('pendingInvitesList').innerHTML = html;
+      });
+  }
+
+  function cancelInvite(inviteId) {
+    db.collection('pendingInvites').doc(inviteId).delete().then(function() {
+      showToast('Invite cancelled', 'success');
+      loadPendingInvites();
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ── Placeholder Members ──
+  // ═══════════════════════════════════════════════════════════
+  function openAddPlaceholderModal() {
+    document.getElementById('phMemberName').value = '';
+    document.getElementById('phMemberEmail').value = '';
+    document.getElementById('addPlaceholderModal').classList.add('show');
+  }
+
+  function closeAddPlaceholderModal() {
+    document.getElementById('addPlaceholderModal').classList.remove('show');
+  }
+
+  function addPlaceholderMember() {
+    if (!isTreasurer() || !currentClub) return;
+    var name = document.getElementById('phMemberName').value.trim();
+    var email = (document.getElementById('phMemberEmail').value || '').trim().toLowerCase();
+
+    if (!name) {
+      showToast('Enter a name for the member', 'error');
+      return;
+    }
+
+    // Check for duplicate name
+    var dupName = members.find(function(m) { return (m.name || '').toLowerCase() === name.toLowerCase(); });
+    if (dupName) {
+      showToast('A member with this name already exists', 'error');
+      return;
+    }
+
+    // Check for duplicate email if provided
+    if (email) {
+      var dupEmail = members.find(function(m) { return m.email && m.email.toLowerCase() === email; });
+      if (dupEmail) {
+        showToast(email + ' is already a member', 'error');
+        return;
+      }
+    }
+
+    var btn = document.getElementById('addPhBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Adding...';
+
+    // Generate a unique placeholder UID
+    var phUid = 'ph_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+
+    var memberDoc = {
+      uid: phUid,
+      name: name,
+      email: email || '',
+      role: 'member',
+      isPlaceholder: true,
+      joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      addedBy: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email }
+    };
+
+    db.collection('clubs').doc(currentClub.id).collection('members').doc(phUid).set(memberDoc)
+      .then(function() {
+        // If email provided, also create a pendingInvite so auto-claim works on sign-in
+        if (email) {
+          db.collection('pendingInvites').add({
+            email: email,
+            clubId: currentClub.id,
+            clubName: currentClub.name,
+            logoBase64: currentClub.logoBase64 || null,
+            invitedBy: currentUser.displayName || currentUser.email,
+            invitedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            placeholderUid: phUid  // signals this is a placeholder claim, not just an invite
+          });
+        }
+        btn.disabled = false;
+        btn.textContent = 'Add Member';
+        showToast(name + ' added as a member! 👤', 'success');
+        closeAddPlaceholderModal();
+      }).catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Add Member';
+        showToast('Error: ' + err.message, 'error');
+      });
+  }
+
+  function checkPendingInvites(user) {
+    return db.collection('pendingInvites')
+      .where('email', '==', user.email.toLowerCase())
+      .get().then(function(snap) {
+        if (snap.empty) return;
+        var promises = [];
+        snap.docs.forEach(function(inviteDoc) {
+          var inv = inviteDoc.data();
+          if (inv.placeholderUid) {
+            // This is a placeholder claim — migrate the placeholder member
+            var p = claimPlaceholderMember(inv.clubId, inv.clubName, inv.logoBase64, inv.placeholderUid, user, inviteDoc.id);
+            promises.push(p);
+          } else {
+            var p = autoJoinClub(inv.clubId, inv.clubName, inv.logoBase64, user, inviteDoc.id);
+            promises.push(p);
+          }
+        });
+        return Promise.all(promises);
+      }).catch(function(err) {
+        console.warn('Error checking invites:', err);
+      });
+  }
+
+  function autoJoinClub(clubId, clubName, logoBase64, user, inviteDocId) {
+    // Check if already a member
+    return db.collection('users').doc(user.uid).collection('clubs').doc(clubId).get()
+      .then(function(existing) {
+        if (existing.exists) {
+          // Already a member, just delete the invite
+          return db.collection('pendingInvites').doc(inviteDocId).delete();
+        }
+        var batch = db.batch();
+        var memberRef = db.collection('clubs').doc(clubId).collection('members').doc(user.uid);
+        var userClubRef = db.collection('users').doc(user.uid).collection('clubs').doc(clubId);
+        batch.set(memberRef, {
+          uid: user.uid,
+          name: user.displayName || user.email,
+          email: user.email,
+          role: 'member',
+          joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        batch.set(userClubRef, {
+          clubName: clubName || 'Club',
+          role: 'member',
+          logoBase64: logoBase64 || null,
+          joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        // Delete the invite after joining
+        batch.delete(db.collection('pendingInvites').doc(inviteDocId));
+        return batch.commit();
+      }).then(function() {
+        showToast('Auto-joined: ' + (clubName || 'a club') + '!', 'success');
+      });
+  }
+
+  // ── Claim placeholder member on sign-in ──
+  function claimPlaceholderMember(clubId, clubName, logoBase64, placeholderUid, user, inviteDocId) {
+    var clubRef = db.collection('clubs').doc(clubId);
+
+    // Step 1: Read the placeholder member doc
+    return clubRef.collection('members').doc(placeholderUid).get()
+      .then(function(phDoc) {
+        if (!phDoc.exists) {
+          // Placeholder already removed — just clean up invite and auto-join
+          return autoJoinClub(clubId, clubName, logoBase64, user, inviteDocId);
+        }
+
+        var phData = phDoc.data();
+        var batch = db.batch();
+
+        // Step 2: Create new member doc with real UID (preserving name from placeholder if user has no display name)
+        var newMemberRef = clubRef.collection('members').doc(user.uid);
+        batch.set(newMemberRef, {
+          uid: user.uid,
+          name: user.displayName || phData.name || user.email,
+          email: user.email,
+          role: phData.role || 'member',
+          joinedAt: phData.joinedAt || firebase.firestore.FieldValue.serverTimestamp(),
+          claimedFrom: placeholderUid,
+          claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Step 3: Delete the placeholder member doc
+        batch.delete(clubRef.collection('members').doc(placeholderUid));
+
+        // Step 4: Create user's club reference
+        var userClubRef = db.collection('users').doc(user.uid).collection('clubs').doc(clubId);
+        batch.set(userClubRef, {
+          clubName: clubName || 'Club',
+          role: phData.role || 'member',
+          logoBase64: logoBase64 || null,
+          joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Step 5: Delete the pending invite
+        batch.delete(db.collection('pendingInvites').doc(inviteDocId));
+
+        return batch.commit().then(function() {
+          // Step 6: Migrate transactions (recordedFor.uid) — done outside batch since could be many
+          return migrateTransactionOwnership(clubId, placeholderUid, user);
+        }).then(function() {
+          // Step 7: Migrate poll votes
+          return migratePollVotes(clubId, placeholderUid, user);
+        }).then(function() {
+          showToast('Welcome! Your account has been linked to ' + (clubName || 'the club') + ' 🎉', 'success');
+        });
+      });
+  }
+
+  function migrateTransactionOwnership(clubId, oldUid, user) {
+    return db.collection('clubs').doc(clubId).collection('transactions')
+      .get().then(function(snap) {
+        // Batch updates in groups of 500 (Firestore limit)
+        var docsToUpdate = snap.docs.filter(function(d) {
+          var data = d.data();
+          return (data.recordedFor && data.recordedFor.uid === oldUid) ||
+                 (data.recordedBy && data.recordedBy.uid === oldUid);
+        });
+        if (docsToUpdate.length === 0) return;
+
+        var batches = [];
+        var currentBatch = db.batch();
+        var count = 0;
+
+        docsToUpdate.forEach(function(doc) {
+          var data = doc.data();
+          var updates = {};
+          if (data.recordedFor && data.recordedFor.uid === oldUid) {
+            updates['recordedFor.uid'] = user.uid;
+            updates['recordedFor.name'] = user.displayName || data.recordedFor.name;
+            if (user.email) updates['recordedFor.email'] = user.email;
+          }
+          if (data.recordedBy && data.recordedBy.uid === oldUid) {
+            updates['recordedBy.uid'] = user.uid;
+            updates['recordedBy.name'] = user.displayName || data.recordedBy.name;
+            if (user.email) updates['recordedBy.email'] = user.email;
+          }
+          currentBatch.update(doc.ref, updates);
+          count++;
+          if (count >= 499) {
+            batches.push(currentBatch.commit());
+            currentBatch = db.batch();
+            count = 0;
+          }
+        });
+        if (count > 0) batches.push(currentBatch.commit());
+        return Promise.all(batches);
+      });
+  }
+
+  function migratePollVotes(clubId, oldUid, user) {
+    return db.collection('clubs').doc(clubId).collection('polls')
+      .get().then(function(snap) {
+        var batches = [];
+        var currentBatch = db.batch();
+        var count = 0;
+        snap.docs.forEach(function(doc) {
+          var data = doc.data();
+          var responses = data.responses || {};
+          if (responses[oldUid] !== undefined) {
+            var vote = responses[oldUid];
+            var updates = {};
+            updates['responses.' + oldUid] = firebase.firestore.FieldValue.delete();
+            updates['responses.' + user.uid] = vote;
+            currentBatch.update(doc.ref, updates);
+            count++;
+            if (count >= 499) {
+              batches.push(currentBatch.commit());
+              currentBatch = db.batch();
+              count = 0;
+            }
+          }
+        });
+        if (count > 0) batches.push(currentBatch.commit());
+        return Promise.all(batches);
+      });
+  }
+
+
+
+  function formatNum(n) {
+    return Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function escHtml(s) {
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  function showToast(msg, type) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast ' + (type || '') + ' show';
+    clearTimeout(el._timeout);
+    el._timeout = setTimeout(function() { el.classList.remove('show'); }, 3000);
+  }
+</script>
+</body>
+</html>
