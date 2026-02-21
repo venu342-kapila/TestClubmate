@@ -2196,6 +2196,12 @@
         html += '  <div style="font-weight:600;font-size:13px;padding-right:24px;">⚖️ You\'re umpiring ' + daysText + (a.matchTitle ? ' — ' + escHtml(a.matchTitle) : '') + '!</div>';
         if (a.venue) html += '  <div style="font-size:11px;color:#666;margin-top:4px;">📍 ' + escHtml(a.venue) + '</div>';
         html += '</div>';
+
+        // Browser notification (once per assignment per session)
+        if (!pollReminderNotified['umpire-' + a.id]) {
+          pollReminderNotified['umpire-' + a.id] = true;
+          fireGenericNotification('⚖️ Umpire Duty ' + daysText + '!', 'You\'re umpiring' + (a.matchTitle ? ' for ' + a.matchTitle : '') + (a.venue ? ' at ' + a.venue : '') + '.', 'umpire-' + a.id, 'polls');
+        }
       });
     }
 
@@ -2215,6 +2221,12 @@
         html += '  <button onclick="dismissPollReminder(\'match-' + poll.id + '\')" style="position:absolute;top:8px;right:8px;background:none;border:none;color:#999;font-size:16px;cursor:pointer;line-height:1;padding:2px 4px;" title="Dismiss">✕</button>';
         html += '  <div style="font-weight:600;font-size:13px;padding-right:24px;">🏏 Match ' + daysText + (poll.opponent ? ' vs ' + escHtml(poll.opponent) : '') + ' — you\'re playing!</div>';
         html += '</div>';
+
+        // Browser notification (once per poll per session)
+        if (!pollReminderNotified['match-' + poll.id]) {
+          pollReminderNotified['match-' + poll.id] = true;
+          fireGenericNotification('🏏 Match ' + daysText + '!', 'You\'re playing' + (poll.opponent ? ' vs ' + poll.opponent : '') + '. Get ready!', 'match-' + poll.id, 'polls');
+        }
       });
     }
 
@@ -2296,24 +2308,27 @@
     shareViaWhatsApp(text);
   }
 
-  function firePollReminderNotification(poll, yesCount, daysText) {
+  function fireGenericNotification(title, body, tag, tabOnClick) {
     if (!('Notification' in window)) return;
+    var doShow = function() {
+      try {
+        var n = new Notification(title, { body: body, tag: tag });
+        n.onclick = function() { window.focus(); if (tabOnClick) showTab(tabOnClick); };
+      } catch(e) { /* ignore */ }
+    };
     if (Notification.permission === 'granted') {
-      showPollNotification(poll, yesCount, daysText);
+      doShow();
     } else if (Notification.permission !== 'denied') {
       Notification.requestPermission().then(function(perm) {
-        if (perm === 'granted') showPollNotification(poll, yesCount, daysText);
+        if (perm === 'granted') doShow();
       });
     }
   }
 
-  function showPollNotification(poll, yesCount, daysText) {
+  function firePollReminderNotification(poll, yesCount, daysText) {
     var title = '🏏 Match ' + daysText + '!';
     var body = 'Only ' + yesCount + '/11 confirmed' + (poll.opponent ? ' for vs ' + poll.opponent : '') + '. Open ClubMates to nudge your team.';
-    try {
-      var n = new Notification(title, { body: body, icon: '🏏', tag: 'poll-' + poll.id });
-      n.onclick = function() { window.focus(); showTab('polls'); };
-    } catch(e) { /* ignore */ }
+    fireGenericNotification(title, body, 'poll-' + poll.id, 'polls');
   }
 
   function renderDashboard() {
