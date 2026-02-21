@@ -1019,6 +1019,21 @@
   </div>
 </div>
 
+<!-- ── Swap Umpire Modal ── -->
+<div id="swapUmpireModal" class="modal-overlay" onclick="if(event.target===this)closeSwapUmpireModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>🔄 Request Swap</h2>
+    <div id="swapUmpireMatchInfo" style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;"></div>
+    <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;">Swap with</label>
+    <select id="swapMemberSelect" style="width:100%;padding:12px;font-size:15px;border:1px solid #DDD;border-radius:10px;background:#FAFAFA;margin-bottom:16px;appearance:auto;">
+      <option value="" disabled selected>— Choose a member —</option>
+    </select>
+    <button class="submit-btn" onclick="confirmSwapRequest()" style="margin-bottom:8px;">Send Request</button>
+    <button class="submit-btn" onclick="closeSwapUmpireModal()" style="background:#F5F5F5;color:var(--text);">Cancel</button>
+  </div>
+</div>
+
 <!-- ── Toast ── -->
 <div id="toast" class="toast"></div>
 
@@ -3094,31 +3109,59 @@
     document.getElementById('umpireStats').innerHTML = html;
   }
 
+  var _swapAssignId = null;
   function requestUmpireSwap(assignmentId) {
-    // Show list of members to swap with
-    var otherMembers = members.filter(function(m) { return m.uid !== currentUser.uid; });
+    // Open swap modal with member dropdown
+    var assignment = umpireAssignments.find(function(a) { return a.id === assignmentId; });
+    if (!assignment) return;
+    var otherMembers = members.filter(function(m) { return !m.isPlaceholder && m.uid !== currentUser.uid; });
     if (otherMembers.length === 0) { showToast('No other members to swap with', 'error'); return; }
 
-    var names = otherMembers.map(function(m, i) { return (i + 1) + '. ' + m.name; }).join('\n');
-    var choice = prompt('Who would you like to swap with?\n\n' + names + '\n\nEnter number:');
-    if (!choice) return;
-    var idx = parseInt(choice) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= otherMembers.length) { showToast('Invalid choice', 'error'); return; }
+    _swapAssignId = assignmentId;
 
-    var target = otherMembers[idx];
-    db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).update({
+    // Show match info
+    var info = (assignment.matchDate || '') + (assignment.matchTitle ? ' — ' + assignment.matchTitle : '');
+    document.getElementById('swapUmpireMatchInfo').textContent = info;
+
+    // Populate dropdown
+    var select = document.getElementById('swapMemberSelect');
+    otherMembers.sort(function(a, b) { return (a.name || a.email).localeCompare(b.name || b.email); });
+    select.innerHTML = '<option value="" disabled selected>— Choose a member —</option>';
+    otherMembers.forEach(function(m) {
+      var opt = document.createElement('option');
+      opt.value = m.uid;
+      opt.textContent = m.name || m.email;
+      select.appendChild(opt);
+    });
+
+    document.getElementById('swapUmpireModal').classList.add('show');
+  }
+
+  function confirmSwapRequest() {
+    var select = document.getElementById('swapMemberSelect');
+    var uid = select.value;
+    if (!uid) { showToast('Please select a member', 'error'); return; }
+    var target = members.find(function(m) { return m.uid === uid; });
+    if (!target) { showToast('Member not found', 'error'); return; }
+
+    db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(_swapAssignId).update({
       swapRequestedWith: { uid: target.uid, name: target.name }
     }).then(function() {
       showToast('Swap request sent to ' + target.name, 'success');
+      closeSwapUmpireModal();
     }).catch(function(err) {
       showToast('Error: ' + err.message, 'error');
     });
   }
 
+  function closeSwapUmpireModal() {
+    document.getElementById('swapUmpireModal').classList.remove('show');
+    _swapAssignId = null;
+  }
+
   function acceptUmpireSwap(assignmentId) {
     var assignment = umpireAssignments.find(function(a) { return a.id === assignmentId; });
     if (!assignment) return;
-    if (!confirm('Accept umpire duty for ' + assignment.matchTitle + '?')) return;
 
     db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).update({
       assignedTo: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
@@ -3144,7 +3187,6 @@
   function volunteerUmpire(assignmentId) {
     var assignment = umpireAssignments.find(function(a) { return a.id === assignmentId; });
     if (!assignment) return;
-    if (!confirm('Volunteer to umpire for ' + assignment.matchTitle + '?')) return;
 
     db.collection('clubs').doc(currentClub.id).collection('umpireAssignments').doc(assignmentId).update({
       assignedTo: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email },
@@ -4075,17 +4117,20 @@
 
   // ── Service Worker Registration & Auto-Update ──
   if ('serviceWorker' in navigator) {
+    // Track whether a SW was already controlling this page (to distinguish first-install from update)
+    var hadController = !!navigator.serviceWorker.controller;
+
     navigator.serviceWorker.register('./sw.js').then(function(reg) {
       // Check for updates every 5 minutes
       setInterval(function() { reg.update(); }, 5 * 60 * 1000);
 
       reg.addEventListener('updatefound', function() {
+        if (!hadController) return; // First install — don't toast or reload
         var newWorker = reg.installing;
         newWorker.addEventListener('statechange', function() {
-          if (newWorker.state === 'activated') {
-            // New version activated — show toast then reload
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New version waiting — skipWaiting will trigger controllerchange → reload
             showToast('\u2728 App updated! Refreshing...', 'success');
-            setTimeout(function() { window.location.reload(); }, 1500);
           }
         });
       });
@@ -4095,9 +4140,11 @@
 
     // Handle controller change (when skipWaiting fires from new SW)
     navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (!hadController) { hadController = true; return; } // First install — skip reload
       if (!window._swReloading) {
         window._swReloading = true;
-        window.location.reload();
+        // Small delay so user sees the toast
+        setTimeout(function() { window.location.reload(); }, 1200);
       }
     });
   }
